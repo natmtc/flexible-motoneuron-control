@@ -24,3 +24,7 @@ docs/site/
 Manifest.toml
 
 .DS_Store
+
+Data_MN_Model/
+
+wandb/
