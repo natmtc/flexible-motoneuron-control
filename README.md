@@ -1,2 +1,3 @@
 # Motoneuron_Model
-Testing first commit 
+Motoneuron model for non-rigid motoneuron control
+
