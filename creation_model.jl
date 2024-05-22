@@ -44,6 +44,12 @@ if SPIKE1 == 1 && (t-t1) > pd
     SPIKE1 = 0; t1=t; p0=p;
 end
 
+# if vs > Vth && (t1 == -1 || (t-t1) > 0.05)   #rp=refractory period=5ms
+#     SPIKE1 = 1; t1=t; p0=p;
+# elseif vs > (Vth - VthCa) && t0 > -1 && (t-t1) > 0.05
+#     SPIKE1 = 1; t1=t; p0=p;
+# end
+
 if SPIKE1 > 0
     @fastmath p = 1+(p0-1) * exp(-αp*(t-t1))
 else
@@ -78,8 +84,12 @@ m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = state_params
 N = length(tspan)-1 #number of steps
 Vd = zeros(N) 
 Vs = zeros(N)
+Pt=zeros(N)
+
 Vd[1] = vd0
 Vs[1] = vs0
+Pt[1] = p0
+
 
 for i in 2:N #computation for time step
     ti = tspan[i-1] #previous time point
@@ -110,8 +120,10 @@ for i in 2:N #computation for time step
     #to compute voltage for the next step
     Vd[i] = vd + (hi/6)*(vd1+2*vd2+2*vd3+vd4) #vd1 and vd4 are given a weight of 1 and vd2 and vd3 a weight of 2 because they are more reliable
     Vs[i] = vs + (hi/6)*(vs1+2*vs2+2*vs3+vs4)
+    Pt[i] = p
 end
-return Vd, Vs, state_params
+state_params = (m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1)
+return Vd, Vs, state_params,Pt
 end
 
 
@@ -131,5 +143,4 @@ for t = 2:length(voltage_time_series)-1
 end
 return spikes
 end
-
 
