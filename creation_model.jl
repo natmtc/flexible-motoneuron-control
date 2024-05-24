@@ -13,12 +13,12 @@ Cs::Float64,  αp::Float64,  βp::Float64, VthCa::Float64, gNa::Float64,
 n::Float64, q::Float64, p::Float64, m0::Float64, h0::Float64, n0::Float64, q0::Float64, p0::Float64,
 t0::Float64, t1::Float64, SPIKE0::Int64, SPIKE1::Int64, exc_input,inh_input)
 
-
+### AP 
 if vs > Vth && (t0 == -1 || (t-t0) > rp)   #initiation of the AP
-    SPIKE0 = 1; t0=t; m0=m; h0=h; n0=n;q0=q;p0=p
+    SPIKE0 = 1; t0=t; m0=m; h0=h; n0=n;q0=q;#p0=p
 
 elseif SPIKE0 == 1 && (t-t0) > pd    #end of the AP
-    SPIKE0 = 0; t0=t; m0=m; h0=h; n0=n; q0=q;p0=p
+    SPIKE0 = 0; t0=t; m0=m; h0=h; n0=n; q0=q;#p0=p
 
 end
 
@@ -37,18 +37,38 @@ else # (backward equations)
 
 end
 
-if vs > Vth - VthCa && (t1 == -1 || (t-t1) > 0.05)   #calcium-specific threshold (VthaCa)  
-    SPIKE1 = 1; t1=t; p0=p;
-end
-if SPIKE1 == 1 && (t-t1) > pd   
-    SPIKE1 = 0; t1=t; p0=p;
+
+### CA CHANNELS 
+
+if vs > Vth && (t1 == -1 || (t - t1) > rp)  # Initiate Ca spike with AP
+    SPIKE1 = 1
+    t1 = t
+    p0 = p
+
+elseif vs > (Vth - VthCa)  
+    println(t)
+
+    if SPIKE1 == 0  # Prevents resetting t1 and p0 unnecessarily while SPIKE1 is already active.
+        t1 = t
+        p0 = p
+    end
+    SPIKE1 = 1
+
+    
+elseif SPIKE1 == 1 && (t - t1) > pd  # Terminate Ca spike if the duration exceeded
+    SPIKE1 = 0
+    t1 = t  
+    p0 = p
 end
 
-# if vs > Vth && (t1 == -1 || (t-t1) > 0.05)   #rp=refractory period=5ms
-#     SPIKE1 = 1; t1=t; p0=p;
-# elseif vs > (Vth - VthCa) && t0 > -1 && (t-t1) > 0.05
-#     SPIKE1 = 1; t1=t; p0=p;
-# end
+
+
+if SPIKE1 > 0
+    @fastmath p = 1 + (p0 - 1) * exp(-αp * (t - t1))
+else
+    @fastmath p = p0 * exp(-βp * (t - t1))
+end
+
 
 if SPIKE1 > 0
     @fastmath p = 1+(p0-1) * exp(-αp*(t-t1))
@@ -63,8 +83,6 @@ end
 
 return new_vd, new_vs, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1
 end
-
-
 
 
 """
@@ -85,10 +103,19 @@ N = length(tspan)-1 #number of steps
 Vd = zeros(N) 
 Vs = zeros(N)
 Pt=zeros(N)
+Mt=zeros(N)
+Ht=zeros(N)
+Nt=zeros(N)
+Qt=zeros(N)
 
 Vd[1] = vd0
 Vs[1] = vs0
 Pt[1] = p0
+Mt[1] = m0
+Ht[1] = h0
+Nt[1] = n0
+Qt[1] = q0
+
 
 
 for i in 2:N #computation for time step
@@ -121,9 +148,14 @@ for i in 2:N #computation for time step
     Vd[i] = vd + (hi/6)*(vd1+2*vd2+2*vd3+vd4) #vd1 and vd4 are given a weight of 1 and vd2 and vd3 a weight of 2 because they are more reliable
     Vs[i] = vs + (hi/6)*(vs1+2*vs2+2*vs3+vs4)
     Pt[i] = p
+    Mt[i] = m
+    Ht[i] = h
+    Nt[i] = n
+    Qt[i] = q
+
 end
 state_params = (m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1)
-return Vd, Vs, state_params,Pt
+return Vd, Vs, state_params,Pt, Mt, Ht, Nt, Qt
 end
 
 
