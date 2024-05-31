@@ -1,0 +1,6 @@
+function filter_input(f,inputs)
+    responsetype = Lowpass(f,fs = 1000)
+    designmethod = Butterworth(3)
+    inputs = filt(digitalfilter(responsetype, designmethod), inputs)
+    return inputs
+end
