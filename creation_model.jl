@@ -16,22 +16,22 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     
     
     ### AP 
-    if vs > Vth && (t0 == -1 || (t-t0) > rp)   #initiation of the AP
+    if vs > Vth && (t0 == -1 || (t-t0) > rp)   # initiation of the AP when AP is greater than Vth
         SPIKE0 = 1; t0=t; m0=m; h0=h; n0=n;q0=q;#p0=p
     
-    elseif SPIKE0 == 1 && (t-t0) > pd    #end of the AP
+    elseif SPIKE0 == 1 && (t-t0) > pd    # end of the AP when pulse duration ends
         SPIKE0 = 0; t0=t; m0=m; h0=h; n0=n; q0=q;#p0=p
     
     end
     
-    if SPIKE0 > 0 #AP (forward equations)
+    if SPIKE0 > 0 #AP (forward equations, opening of the channels)
     
         @fastmath m = 1+(m0-1) * exp(-αm*(t-t0)) 
         @fastmath h = h0*exp(-βh*(t-t0)) 
         @fastmath n = 1+(n0-1)*exp(-αn*(t-t0)) 
         @fastmath q = 1+(q0-1)*exp(-αq*(t-t0)) 
     
-    else # (backward equations)
+    else # (backward equations, closing of the channels)
         @fastmath m = m0*exp(-βm*(t-t0))
         @fastmath h = 1+(h0-1)*exp(-αh*(t-t0))  
         @fastmath n = n0*exp(-βn*(t-t0))
@@ -40,24 +40,24 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     end
     
     
-    # ### CA CHANNELS 
+    ### CA CHANNELS 
     
-    if vs > Vth && (t1 == -1 ) # Initiate Ca spike with AP
+    if vs > Vth && (t1 == -1 ) # Initiate Ca spikes with somatic AP
         SPIKE1 = 1
         t1 = t
         p0 = p
         
-    elseif (vs > Vth - VthCa)  && (t1 != -1) && (t - t1) > rp    
+    elseif (vs > Vth - VthCa)  && (t1 != -1) && (t - t1) > rp # prolongation of the firing, hysteresis
         SPIKE1 = 1
         t1 = t
         p0 = p
     
-    elseif SPIKE1 == 1 && (t - t1) > pd
+    elseif SPIKE1 == 1 && (t - t1) > pd #end of the Ca AP
         SPIKE1 = 0
         t1 = t  
         p0 = p
     
-    elseif flag==true && last_spike==true
+    elseif flag==true && last_spike==true #facilitation effect, start firing again if we are in the ramp down of the pulse and conditions for firing are met
         t1 = -1     
     end
     
