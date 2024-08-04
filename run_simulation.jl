@@ -1,4 +1,4 @@
-function run_sim_optim_constant_inh()
+function run_simulation()
 
     for i in 1:nr_s
         temp = filter_input(50,rand(Normal(0, 1),sim_length+2000))  # add some gaussian noise - optional
