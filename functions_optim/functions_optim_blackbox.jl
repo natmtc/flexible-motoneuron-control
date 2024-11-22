@@ -1,9 +1,8 @@
-function object_function_constant_inh(γh,i)
-    simulated_hysteresis, _ = simulate_hh_hysteresis_constant_inh(γh,i,MN_list)
+function object_function_constant_inh(VthCa,i)
+    simulated_hysteresis, _ = simulate_hh_hysteresis_constant_inh(VthCa,i,MN_list)
     ssd = sum((hysteresis_exp[i] .- simulated_hysteresis).^2)
     return ssd 
 end
-
 
 
 function run_sim_optim_constant_inh(i)
@@ -14,7 +13,6 @@ function run_sim_optim_constant_inh(i)
     vs_arr[i,:] = vs
     return spike_arr, vs_arr
 end
-
 
 
 function firing_rates_max(spike_array,i)
@@ -37,19 +35,11 @@ function firing_rates_max(spike_array,i)
 
 
 
-function normalize_to_range(vector, new_min, new_max)
-        min_val = minimum(vector)
-        max_val = maximum(vector)
-        return ((vector .- min_val) / (max_val - min_val)) * (new_max - new_min) .+ new_min
-end
-
-
-
-function simulate_hh_hysteresis_constant_inh(γh::Vector,i,MN_list)   
-    MN_list[i][:γh] = γh[i]
+function simulate_hh_hysteresis_constant_inh(values_deac::Vector,i,MN_list) 
+      
+    MN_list[i][:VthCa] = values_deac[i]
     MNs= MN_list[i]
     spike_array, _ = run_sim_optim_constant_inh(i);
-
 
     amplitude=0.4;
     sim_length=560000 ;
@@ -58,16 +48,12 @@ function simulate_hh_hysteresis_constant_inh(γh::Vector,i,MN_list)
     up = range(-0.1, amplitude, length = half_triang + 1)  ;
     down = range(amplitude, -0.1, length = sim_length - half_triang + 1);  
     tr = vcat(flat_line, up[2:end], down[2:end], flat_line);
-    equiv_force_profile= (tr/maximum(tr))*nr_s
-
     hysteresis= []
 
-    if any(spike_array[1, :] .== 1)
-            
-        value_1= equiv_force_profile[findfirst(==(1),spike_array[1,:]),:] #force at the recruitment threshold
-        value_2=  equiv_force_profile[findlast(==(1),spike_array[1,:]),:] #force at the derecruitment threshold
+    if any(spike_array[1, :] .== 1)     
+        value_1= tr[findfirst(==(1),spike_array[1,:]),:] #force at the recruitment threshold
+        value_2=  tr[findlast(==(1),spike_array[1,:]),:] #force at the derecruitment threshold
         hysteresis= (value_2[1]/value_1[1]).- 1
-
     else
         hysteresis=100 #random high value
     end
@@ -76,7 +62,3 @@ function simulate_hh_hysteresis_constant_inh(γh::Vector,i,MN_list)
     
     return hysteresis, max_firing_rates
 end
-
-
-    
-
