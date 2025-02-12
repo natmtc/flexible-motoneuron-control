@@ -1,10 +1,13 @@
 # Neuromodulation increases the flexibility of motoneuron control
 
-In this project we implement a biphysical model that builds upon Hodgkin-Huxley equations and that has two compartments - a dendrite and a soma. 
+In this project, we implemented a biophysical model based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma.
 
 ![alt text](pictures_for_explanation/circuit.png)
 
-We checked the model could replicate a force-tracking task correctly by implementing a PD controller to minimizes the error between target and actual force.
+To verify the model's ability to replicate force-tracking tasks, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
 
-The model is validated with experimental data from the Tibialis Anterior and Vastus Lateralis muscles of 8 participants (Avrillon et al. 2024, eLife) while they executed trapezoidal isometric contractions.
+The model was validated using experimental data from the Tibialis Anterior and Vastus Lateralis muscles of eight participants (Avrillon et al., 2024, eLife), recorded during trapezoidal isometric contractions.
 
+As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately reproducing de-recruitment times—a variability influenced by neuromodulatory constraints originating from the brainstem.
+
+![alt text](pictures_for_explanation/output_rasters.png)
