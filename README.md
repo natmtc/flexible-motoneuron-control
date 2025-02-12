@@ -2,7 +2,9 @@
 
 In this project, we implemented a biophysical model based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma.
 
-![alt text](pictures_for_explanation/circuit.png)
+<p align="center">
+  <img src="pictures_for_explanation/circuit.png" alt="Circuit Diagram">
+</p>
 
 To verify the model's ability to replicate force-tracking tasks, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
 
@@ -10,4 +12,7 @@ The model was validated using experimental data from the Tibialis Anterior and V
 
 As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately reproducing de-recruitment times—a variability influenced by neuromodulatory constraints originating from the brainstem.
 
-![alt text](pictures_for_explanation/output_rasters.png)
+
+<p align="center">
+  <img src="pictures_for_explanation/output_rasters.png" alt="Output_model">
+</p>
