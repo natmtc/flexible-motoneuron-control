@@ -1,9 +1,3 @@
-"""
-ODE_motoneuron
-Computation of the state variables: ϕ̊ = α(1-ϕ) - βϕ
-Computation of the soma and dendrite membrane potentials using the previous calculated stated variables, etc.
-"""
-
 function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     gc::Float64, gld::Float64, gls::Float64, gCa::Float64, Cd::Float64,
     Cs::Float64,  αp::Float64,  βp::Float64, VthCa::Float64, gNa::Float64,
@@ -38,7 +32,7 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     end
     
     
-    # ### CA CHANNELS 
+    #### CA CHANNELS 
     
     if vs > Vth && (t1 == -1 ) # Initiate Ca spike with AP
         SPIKE1 = 1
@@ -76,19 +70,11 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
 end
     
     
-    
 
-"""
-ode4(tspan, vd0, vs0, MN_i, state_params, exc_input,inh_input)
-Computes voltage values for the soma and the dendrite for each time step
-"""
 function ode4(tspan, vd0, vs0, MN_i, state_params, exc_input,inh_input, MNs)
-# unpack the variables that are in the MN list for one specififc motoneuron i
 
-@unpack gc, gld, gls, gCa, Cd, Cs,  αp, βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,
-αq, βq, γh,IF= stringdict(MNs[MN_i])  
+@unpack gc, gld, gls, gCa, Cd, Cs,  αp, βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn, αq, βq, γh,IF= stringdict(MNs[MN_i])  
 
-# state parameters
 
 m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = state_params
 
@@ -120,9 +106,6 @@ for i in 2:N #computation for time step
     i_inp = inh_input[_int(ti+1)]
     
 
-
-    #Fourth-order Runge-Kutta method that solves differential equations with step-size of 0.05ms.
-
     vd1, vs1, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti, vd, vs, gc,
     gld, gls, gCa, Cd, Cs, αp,  βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,
     αq, βq,γh, IF, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp)
@@ -139,7 +122,6 @@ for i in 2:N #computation for time step
     vd+hi*vd3, vs+hi*vs3, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,
     gKs, αh, βh, αn, βn, αq, βq, γh, IF, m,h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp)
 
-    #to compute voltage for the next step
     Vd[i] = vd + (hi/6)*(vd1+2*vd2+2*vd3+vd4) #vd1 and vd4 are given a weight of 1 and vd2 and vd3 a weight of 2 because they are more reliable
     Vs[i] = vs + (hi/6)*(vs1+2*vs2+2*vs3+vs4)
     Pt[i] = p
@@ -156,12 +138,6 @@ state_params = (m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1)
 return Vd, Vs, state_params,Pt, Mt, Ht, Nt, Qt
 end
 
-
-"""
-spikes_from_aps(time_series, i) 
-Returns spikes from the soma based on wheter the neuron voltage exceeds a specific threshold at a given time point (voltage t > threshold???)
-* voltage_time_series = soma voltage returned by 'ode4' function (see function that runs simulation)
-"""
 function spikes_from_aps(voltage_time_series, i, MNs)
 spikes = zeros(Int64, length(voltage_time_series))
 for t = 2:length(voltage_time_series)-1

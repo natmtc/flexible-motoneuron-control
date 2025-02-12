@@ -16,3 +16,17 @@ As a result, our model successfully simulates the spiking activity of a motoneur
 <p align="center">
   <img src="pictures_for_explanation/output_rasters.png" alt="Output_model">
 </p>
+
+
+Everything related to the model is implemented in Julia due to its computational efficiency, particularly for solving the Runge-Kutta 4th order (RK4) method, which allows for faster voltage computations at any time point.
+
+Another PD controller was used to mimick the task described in Bräcklein et al. 2022 (eLife) where participants decorrelate the activity of pairs of motoneurons.
+
+<p align="center">
+  <img src="pictures_for_explanation/PDcontroller.png" alt="Output_model">
+</p>
+
+Additional metrics obtained from Marshall et al. Nature 2022 are used in .mat format.
+
+
+This code provides an extensive analysis on how neuromodulation can be used to decorrelate the activity of independent motoneurons in order to have a more flexible control.
