@@ -35,11 +35,22 @@ This code provides an extensive analysis on how neuromodulation can be used to d
 - **Two-compartment structure** (soma & dendrite)
 - **Force-tracking validation** 
 - **Simulates spiking activity** and **derecruitment variability** in motoneuron pools
-- **Learning to control neuromodulation*
+- **Learning to control neuromodulation**
 
-## Installation
+## Installation and dependencies
 
    ```sh
    git clone https://github.com/natmtc/Motoneuron_Model.git
    cd Motoneuron_Model
+```
 
+Make sure you have Julia installed. Then, install the required packages by running:
+
+```julia
+using Pkg
+Pkg.add([
+    "Plots", "Distributions", "JLD", "DSP", "Parameters", "Match", "SymDict", 
+    "NumericalIntegration", "Random", "MAT", "Pkg", "CSV", "DataFrames", "XLSX", 
+    "JLD2", "Colors", "ColorSchemes", "Makie", "CairoMakie", "Optim", "Serialization", 
+    "JuMP", "Ipopt", "Wandb", "PyCall", "Logging", "GLM", "PyPlot", "Polynomials"
+])
