@@ -1,7 +1,10 @@
+"""
+run_sim, runs the simulation for the #nr_s motoneurons considering a common input to all the motoneurons WITH GAUSSIAN NOISE
+"""
 function run_simulation()
 
     for i in 1:nr_s
-        temp = filter_input(50,rand(Normal(0, 1),sim_length+2000))  # add some gaussian noise - optional
+        temp = filter_input(50,rand(Normal(0, 1),sim_length+2000))  
         independantnoise[i,:] = temp[1001:end-1000] * 0.25;
 
         full_input[i,:] = commoninput + independantnoise[i,:]; 

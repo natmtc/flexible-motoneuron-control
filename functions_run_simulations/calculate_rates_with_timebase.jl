@@ -1,6 +1,5 @@
 """
 Calculate_rates_with_timebase
-Calculates the firing rates from the position of the spikes
 """
 function calculate_rates_with_timebase(spike_pos, sampling_rate)
     if isempty(spike_pos)

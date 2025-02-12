@@ -1,6 +1,5 @@
 """
-run_sim
-Runs the simulation for the #nr_s motoneurons considering a common input to all the motoneurons
+run_sim, runs the simulation for the #nr_s motoneurons considering a common input to all the motoneurons
 """
 function run_sim()
 

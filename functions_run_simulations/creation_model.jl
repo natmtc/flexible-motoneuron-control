@@ -1,18 +1,11 @@
 using Parameters
 
 """
-ODE_motoneuron
-Computation of the state variables: ϕ̊ = α(1-ϕ) - βϕ
-Computation of the soma and dendrite membrane potentials using the previous calculated stated variables, etc.
+ODE_motoneuron. Computation of the soma and dendrite membrane potentials using the previous calculated stated variables, etc.
 """
-
-function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
-    gc::Float64, gld::Float64, gls::Float64, gCa::Float64, Cd::Float64,
-    Cs::Float64,  αp::Float64,  βp::Float64, VthCa::Float64, gNa::Float64,
-    αm::Float64, βm::Float64, Vth::Float64, gKf::Float64, gKs::Float64, αh::Float64, βh::Float64,
-    αn::Float64, βn::Float64, αq::Float64, βq::Float64, γh::Float64,IF::Float64, m::Float64, h::Float64, 
-    n::Float64, q::Float64, p::Float64, m0::Float64, h0::Float64, n0::Float64, q0::Float64, p0::Float64,
-    t0::Float64, t1::Float64, SPIKE0::Int64, SPIKE1::Int64, exc_input,inh_input,flag,last_spike)
+function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,gc::Float64, gld::Float64, gls::Float64, gCa::Float64, Cd::Float64,Cs::Float64,  αp::Float64,  βp::Float64, VthCa::Float64, gNa::Float64,
+    αm::Float64, βm::Float64, Vth::Float64, gKf::Float64, gKs::Float64, αh::Float64, βh::Float64,αn::Float64, βn::Float64, αq::Float64, βq::Float64, γh::Float64,IF::Float64, m::Float64, h::Float64, 
+    n::Float64, q::Float64, p::Float64, m0::Float64, h0::Float64, n0::Float64, q0::Float64, p0::Float64,t0::Float64, t1::Float64, SPIKE0::Int64, SPIKE1::Int64, exc_input,inh_input,flag,last_spike)
     
     
     ### AP 
@@ -40,7 +33,7 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     end
     
     
-    ### CA CHANNELS 
+    ### CA CHANNELS , for obtaining hysteresis
     
     if vs > Vth && (t1 == -1 ) # Initiate Ca spikes with somatic AP
         SPIKE1 = 1
@@ -52,7 +45,7 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
         t1 = t
         p0 = p
     
-    elseif SPIKE1 == 1 && (t - t1) > pd #end of the Ca AP
+    elseif SPIKE1 == 1 && (t - t1) > pd # end of the Ca AP
         SPIKE1 = 0
         t1 = t  
         p0 = p
@@ -79,23 +72,17 @@ function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
 end
     
     
-    
-
 """
-ode4(tspan, vd0, vs0, MN_i, state_params, exc_input,inh_input)
-Computes voltage values for the soma and the dendrite for each time step
+ode4 computes voltage values for the soma solving differential equations with RK4
 """
 function ode4(tspan, vd0, vs0, MN_i, state_params, exc_input,inh_input, MNs)
-# unpack the variables that are in the MN list for one specififc motoneuron i
 
-@unpack gc, gld, gls, gCa, Cd, Cs,  αp, βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,
-αq, βq, γh,IF= stringdict(MNs[MN_i])  
-
-# state parameters
+@unpack gc, gld, gls, gCa, Cd, Cs,  αp, βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,αq, βq, γh,IF= stringdict(MNs[MN_i])  
 
 m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = state_params
 
 N = length(tspan)-1 #number of steps
+# create variables for everything in case we want to see the evolution over time of each parameter
 Vd = zeros(N) 
 Vs = zeros(N)
 Pt=zeros(N)
@@ -127,23 +114,12 @@ for i in 2:N #computation for time step
         flag==true
     end
 
-    #Fourth-order Runge-Kutta method that solves differential equations with step-size of 0.05ms.
+    # solve differential equations
 
-    vd1, vs1, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti, vd, vs, gc,
-    gld, gls, gCa, Cd, Cs, αp,  βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,
-    αq, βq,γh, IF, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
-
-    vd2, vs2, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti+0.5*hi,
-    vd+0.5*hi*vd1, vs+0.5*hi*vs1, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,
-    gKs, αh, βh, αn, βn, αq, βq, γh, IF, m, h , n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
-
-    vd3, vs3, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti+0.5*hi,
-    vd+0.5*hi*vd2, vs+0.5*hi*vs2, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,
-    gKs, αh, βh, αn, βn, αq, βq, γh, IF, m,h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
-
-    vd4, vs4, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(tspan[i],
-    vd+hi*vd3, vs+hi*vs3, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,
-    gKs, αh, βh, αn, βn, αq, βq, γh, IF, m,h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
+    vd1, vs1, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti, vd, vs, gc, gld, gls, gCa, Cd, Cs, αp,  βp, VthCa, gNa, αm, βm, Vth, gKf, gKs, αh, βh, αn, βn,αq, βq,γh, IF, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
+    vd2, vs2, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti+0.5*hi,vd+0.5*hi*vd1, vs+0.5*hi*vs1, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,gKs, αh, βh, αn, βn, αq, βq, γh, IF, m, h , n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
+    vd3, vs3, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(ti+0.5*hi,vd+0.5*hi*vd2, vs+0.5*hi*vs2, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,gKs, αh, βh, αn, βn, αq, βq, γh, IF, m,h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
+    vd4, vs4, m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1 = ODE_motoneuron(tspan[i],vd+hi*vd3, vs+hi*vs3, gc, gld, gls, gCa, Cd, Cs,  αp,  βp, VthCa, gNa, αm, βm, Vth, gKf,gKs, αh, βh, αn, βn, αq, βq, γh, IF, m,h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1, e_inp,i_inp,flag,last_spike)
 
     #to compute voltage for the next step
     Vd[i] = vd + (hi/6)*(vd1+2*vd2+2*vd3+vd4) #vd1 and vd4 are given a weight of 1 and vd2 and vd3 a weight of 2 because they are more reliable
@@ -156,7 +132,7 @@ for i in 2:N #computation for time step
 
     e_inp_prev= e_inp
 
-
+    # FACILITATION PART 
     if (vs> (Vth-VthCa)) && (Vs[i]> (Vth-VthCa))
         last_spike=false
     elseif (vs> (Vth-VthCa)) && (Vs[i]< (Vth-VthCa))
@@ -171,15 +147,12 @@ end
 
 
 """
-spikes_from_aps(time_series, i) 
-Returns spikes from the soma based on wheter the neuron voltage exceeds a specific threshold at a given time point (voltage t > threshold???)
-* voltage_time_series = soma voltage returned by 'ode4' function (see function that runs simulation)
+spikes_from_aps returns spike is the condition for firing an AP are met
 """
 function spikes_from_aps(voltage_time_series, i, MNs)
 spikes = zeros(Int64, length(voltage_time_series))
 for t = 2:length(voltage_time_series)-1
-    # check if voltage is bigger than threshold (Vth)
-    # Generate 1 or 0 from Boolean dependending on whether the element meets both conditions
+
     cond1 = voltage_time_series[t] > MNs[i][:Vth]
     cond2 = voltage_time_series[t-1] < voltage_time_series[t] > voltage_time_series[t+1]
     spikes[t]= _int(cond1 && cond2)
