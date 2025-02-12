@@ -1,10 +1,3 @@
-#############################################################
-#############################################################
-############ FUNCTIONS FOR OPTIMISATION #####################
-#############################################################
-#############################################################
-
-
 function object_function(γh,i)
     penalty = 0
     penalty_factor = 1e6  # Adjust
@@ -79,13 +72,12 @@ function simulate_hh_hysteresis(γh::Vector,i,MN_list)
     if value_1 !== nothing
         # Safe to use index
     else
-        print(11111111)
+        print('no')
     end
 
     if value_2 !== nothing
-        # Safe to use index
     else
-        print(222222222)
+        print('no')
     end
     hysteresis= (value_2/value_1).-1
     # println(hysteresis)
@@ -136,7 +128,7 @@ function gradient_descent_optimization(γh_initial::Vector{Float64}, i::Int, lea
             break  
         end
 
-        obj_value_prev = obj_value_new  # Update previous objective function value for next iteration
+        obj_value_prev = obj_value_new  
 
         println("Iteration $iter, Objective Function Value: ", obj_value_new)
     end
