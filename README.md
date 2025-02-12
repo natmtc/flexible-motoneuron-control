@@ -10,4 +10,4 @@ The model was validated using experimental data from the Tibialis Anterior and V
 
 As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately reproducing de-recruitment times—a variability influenced by neuromodulatory constraints originating from the brainstem.
 
-![alt text](pictures_for_explanation/output rasters.png)
+![alt text](pictures_for_explanation/output_rasters.png)
