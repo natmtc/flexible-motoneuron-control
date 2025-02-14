@@ -8,7 +8,7 @@ In this project, we implemented a **biophysical model** based on the Hodgkin-Hux
 
 To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
 
-The model was validated using experimental data from the **Tibialis Anterior** and **Vastus Lateralis** muscles of eight participants (Avrillon et al., 2024, eLife), recorded during trapezoidal isometric contractions.
+The model was validated using experimental data from the **Tibialis Anterior** and **Vastus Lateralis** muscles of eight participants (Avrillon et al., 2024, *eLife*), recorded during trapezoidal isometric contractions.
 
 As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately **reproducing derecruitment times variability influenced by neuromodulatory constraints** originating from the brainstem.
 
@@ -26,9 +26,12 @@ Another **PD controller** was used to mimick the task described in Bräcklein et
   <img src="pictures_for_explanation/PDcontroller.png" alt="Output_model">
 </p>
 
-Additional metrics obtained from Marshall et al. Nature 2022 are used in .mat format.
+Additional metrics from **Marshall et al., 2022 (*Nature*)** are incorporated in `.mat` format.
 
-This code provides an extensive analysis on how neuromodulation can be used to decorrelate the activity of independent motoneurons in order to have a more flexible control.
+Experimental data analysis from **Mario Bräcklein's study** was conducted in **Python**, providing insights into **how neuromodulation and force evolve during learning**.
+
+This project extensively explores how **neuromodulation enhances the flexibility of motoneuron control**, allowing independent motoneurons to decorrelate their activity.
+
 
 ## Features
 - **Biophysical motoneuron model** based on Hodgkin-Huxley equations
@@ -37,7 +40,7 @@ This code provides an extensive analysis on how neuromodulation can be used to d
 - **Simulates spiking activity** and **derecruitment variability** in motoneuron pools
 - **Learning to control neuromodulation**
 
-## Installation and dependencies
+## Installation and dependencies for model coded in Julia
 
    ```sh
    git clone https://github.com/natmtc/Motoneuron_Model.git
@@ -54,3 +57,7 @@ Pkg.add([
     "JLD2", "Colors", "ColorSchemes", "Makie", "CairoMakie", "Optim", "Serialization", 
     "JuMP", "Ipopt", "Wandb", "PyCall", "Logging", "GLM", "PyPlot", "Polynomials"
 ])
+```
+
+## Installation and dependencies for data analysis in Python
+
