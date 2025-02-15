@@ -61,3 +61,8 @@ Pkg.add([
 
 ## Installation and dependencies for data analysis in Python
 
+Ensure you have **Python 3.8 or later** installed.
+
+Run the following command in your terminal:
+```sh
+pip install numpy pandas seaborn matplotlib scipy scikit-learn umap-learn h5py
