@@ -13,7 +13,7 @@ def apply_pca_and_plot_sessions(folder_path, pkl_files, fsamp=2048, n_components
         trial_lengths = []
         min_neurons = float('inf')
 
-        # First pass: determine minimum neuron count across trials
+        # First : determine minimum neuron count across trials
         for file in trial_files:
             file_path = os.path.join(folder_path, file)
 
@@ -25,7 +25,7 @@ def apply_pca_and_plot_sessions(folder_path, pkl_files, fsamp=2048, n_components
 
             min_neurons = min(min_neurons, smoothed_firing_rates.shape[0])
 
-        # Second pass: Process and store trials
+        # Second : Process and store trials
         for file in trial_files:
             file_path = os.path.join(folder_path, file)
 
