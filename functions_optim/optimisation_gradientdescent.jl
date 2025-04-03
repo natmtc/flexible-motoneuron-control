@@ -72,12 +72,12 @@ function simulate_hh_hysteresis(γh::Vector,i,MN_list)
     if value_1 !== nothing
         # Safe to use index
     else
-        print('no')
+        print("no")
     end
 
     if value_2 !== nothing
     else
-        print('no')
+        print("no")
     end
     hysteresis= (value_2/value_1).-1
     # println(hysteresis)
