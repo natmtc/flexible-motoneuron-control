@@ -1,6 +1,7 @@
-# Neuromodulation increases the flexibility of motoneuron control
+# Neuromodulation producues deviuations from rigid control
 
-In this project, we implemented a **biophysical model** based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma.
+In this project, we implemented a **biophysical model** of a motoneuron based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma. 
+To replicate neuromodulatory effects we optimize the voltage deactivation thresholds of Calcium channels.
 
 <p align="center">
   <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram">
