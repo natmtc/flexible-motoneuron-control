@@ -9,7 +9,7 @@ To replicate neuromodulatory effects we optimize the voltage deactivation thresh
 
 To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
 
-The model was validated using experimental data from the **Tibialis Anterior** and **Vastus Lateralis** muscles of eight participants (Avrillon et al., 2024, *eLife*), recorded during trapezoidal isometric contractions.
+The model was validated using experimental data from the **Tibialis Anterior** muscle of eight participants (Avrillon et al., 2024, *eLife*), recorded during trapezoidal isometric contractions.
 
 As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately **reproducing derecruitment times variability influenced by neuromodulatory constraints** originating from the brainstem.
 
@@ -23,15 +23,11 @@ Everything related to the model is implemented in Julia due to its computational
 
 Another **PD controller** was used to mimick the task described in Bräcklein et al. 2022 (eLife) where participants decorrelate the activity of pairs of motoneurons.
 
-<p align="center">
-  <img src="pictures_for_explanation/PDcontroller.png" alt="Output_model">
-</p>
-
 Additional metrics from **Marshall et al., 2022 (*Nature*)** are incorporated in `.mat` format.
 
-Experimental data analysis from **Mario Bräcklein's study** was conducted in **Python**, providing insights into **how neuromodulation and force evolve during learning**.
+Experimental data analysis from **Mario Bräcklein's study** was conducted in **Python**, providing insights into **how the correlated  activity of the pool evolves with learning- mainly through a spiking GLM analysis**.
 
-This project extensively explores how **neuromodulation enhances the flexibility of motoneuron control**, allowing independent motoneurons to decorrelate their activity.
+This project extensively explores how **neuromodulation produces deviations from the classic rigid control**, which allows a decorrelation between motoneuron pair activity. 
 
 
 ## Features
@@ -39,7 +35,7 @@ This project extensively explores how **neuromodulation enhances the flexibility
 - **Two-compartment structure** (soma & dendrite)
 - **Force-tracking validation** 
 - **Simulates spiking activity** and **derecruitment variability** in motoneuron pools
-- **Learning to control neuromodulation**
+- **Motoneuron pool correlation over learning**
 
 ## Installation and dependencies for model coded in Julia
 
