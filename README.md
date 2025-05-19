@@ -1,11 +1,14 @@
 # Neuromodulation produces deviations from rigid control
 
 In this project, we implemented a **biophysical model** of a motoneuron based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma. 
+
 To replicate neuromodulatory effects we optimize the voltage deactivation thresholds of Calcium channels.
+
 
 <p align="center">
   <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram" width="800">
 </p>
+
 
 To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
 
@@ -17,6 +20,7 @@ As a result, our model successfully simulates the spiking activity of a motoneur
 <p align="center">
   <img src="pictures_for_explanation/output.png" alt="Output_model">
 </p>
+
 
 
 Everything related to the model is implemented in Julia due to its computational efficiency, particularly for solving the Runge-Kutta 4th order (RK4) method, which allows for faster voltage computations at any time point.
