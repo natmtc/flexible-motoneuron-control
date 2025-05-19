@@ -15,7 +15,7 @@ As a result, our model successfully simulates the spiking activity of a motoneur
 
 
 <p align="center">
-  <img src="pictures_for_explanation/output_rasters.png" alt="Output_model">
+  <img src="pictures_for_explanation/output.png" alt="Output_model">
 </p>
 
 
