@@ -4,7 +4,7 @@ In this project, we implemented a **biophysical model** of a motoneuron based on
 To replicate neuromodulatory effects we optimize the voltage deactivation thresholds of Calcium channels.
 
 <p align="center">
-  <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram" width="400">
+  <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram" width="1000">
 </p>
 
 To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
