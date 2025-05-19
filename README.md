@@ -1,4 +1,4 @@
-# Neuromodulation producues deviuations from rigid control
+# Neuromodulation producues deviations from rigid control
 
 In this project, we implemented a **biophysical model** of a motoneuron based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma. 
 To replicate neuromodulatory effects we optimize the voltage deactivation thresholds of Calcium channels.
