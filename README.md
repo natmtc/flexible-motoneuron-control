@@ -3,7 +3,7 @@
 In this project, we implemented a **biophysical model** based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma.
 
 <p align="center">
-  <img src="pictures_for_explanation/circuit.png" alt="Circuit Diagram">
+  <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram">
 </p>
 
 To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
