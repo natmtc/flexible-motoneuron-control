@@ -1,5 +1,25 @@
-def plot_firing_rates(folder_path, pkl_files, fsamp=2048, window_duration=0.3):
-    num_files = len(pkl_files)
+import os
+import math
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import convolve, windows
+
+
+def compute_firing_rates(spike_array, fs, window_duration=0.3):
+    window_samples = int(round(window_duration * fs))  # Convert duration to samples
+    hanning_window = windows.hann(window_samples)  # Create Hanning window
+    hanning_window /= np.sum(hanning_window)  # Normalize window
+    
+    smoothed_firing_rates = np.zeros_like(spike_array, dtype=float)
+    
+    for i in range(spike_array.shape[0]):  
+        smoothed_firing_rates[i, :] = convolve(spike_array[i, :], hanning_window, mode='same') * fs  
+    
+    return smoothed_firing_rates
+
+def plot_firing_rates(folder_path, pkl_files, fsamp=2048, window_duration=0.3, session_label=''):
+    num_files = len(pkl_files)      
     cols = 3  # Number of columns for subplots
     rows = math.ceil(num_files / cols)  # Compute number of rows
 
@@ -22,15 +42,15 @@ def plot_firing_rates(folder_path, pkl_files, fsamp=2048, window_duration=0.3):
             ax.plot(time_axis, smoothed_firing_rates[neuron_idx, :], label=f'Neuron {neuron_idx}', alpha=0.7)
 
         num_neurons = data_MU.shape[0]  # Count the number of motoneurons
-        ax.set_title(f'Trial: {file} (n={num_neurons})', fontsize=10)  # Update title
+        ax.set_title(f'{session_label} - Trial: {file}', fontsize=10)
 
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Firing Rate (Hz)')
 
+    # Remove unused subplots
     for j in range(idx + 1, len(axes)):
         fig.delaxes(axes[j])  
 
     plt.tight_layout()
     plt.ylim([0, 40])
-    # plt.savefig('/Users/nmt121/Desktop/RESULTS_ DATA EXP/S7firings.pdf', dpi=300, bbox_inches='tight')
     plt.show()

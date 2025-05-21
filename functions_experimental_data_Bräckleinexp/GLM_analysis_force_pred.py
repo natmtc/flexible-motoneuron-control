@@ -4,7 +4,7 @@ import pickle
 import numpy as np      
 
 
-def preprocess_trial_force(file, bin_size_ms):
+def preprocess_trial_force(file,folder_path, bin_size_ms):
     file_path = os.path.join(folder_path, file)
     with open(file_path, 'rb') as f:
         data = pickle.load(f)

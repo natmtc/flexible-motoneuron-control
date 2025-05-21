@@ -1,6 +1,0 @@
-
-import re  
-
-def extract_day(filename):
-    match = re.search(r"(Day\d{2})", filename)
-    return match.group(1) if match else None  
