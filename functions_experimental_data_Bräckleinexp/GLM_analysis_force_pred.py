@@ -4,7 +4,31 @@ import pickle
 import numpy as np      
 
 
-def preprocess_trial_force(file,folder_path, bin_size_ms):
+# def preprocess_trial_force(file,folder_path, bin_size_ms):
+#     file_path = os.path.join(folder_path, file)
+#     with open(file_path, 'rb') as f:
+#         data = pickle.load(f)
+
+#     force = np.array(data['Force'])
+#     if force.ndim == 2:
+#         force = force.squeeze()
+
+#     data_MU = np.array(data['MU'].tolist())
+
+#     # Just compute number of bins based on the full length
+#     num_timepoints = force.shape[0]
+#     num_bins = num_timepoints // bin_size_ms
+
+#     # Bin the spikes and force
+#     binned_spikes = np.add.reduceat(data_MU, np.arange(0, num_bins * bin_size_ms, bin_size_ms), axis=1)
+
+#     binned_force = np.add.reduceat(force[:num_bins * bin_size_ms], np.arange(0, num_bins * bin_size_ms, bin_size_ms)) / bin_size_ms
+
+#     mnpair= data['Idx_MU_Pair'].tolist()
+
+#     return binned_spikes, binned_force, mnpair
+
+def preprocess_trial_force(file, folder_path, bin_size_ms, fsamp=2048):
     file_path = os.path.join(folder_path, file)
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
@@ -15,18 +39,21 @@ def preprocess_trial_force(file,folder_path, bin_size_ms):
 
     data_MU = np.array(data['MU'].tolist())
 
-    # Just compute number of bins based on the full length
+    # Convert bin size from ms to samples
+    bin_size_samples = int(bin_size_ms * fsamp / 1000)
+
+    # Determine number of bins
     num_timepoints = force.shape[0]
-    num_bins = num_timepoints // bin_size_ms
+    num_bins = num_timepoints // bin_size_samples
 
     # Bin the spikes and force
-    binned_spikes = np.add.reduceat(data_MU, np.arange(0, num_bins * bin_size_ms, bin_size_ms), axis=1)
+    binned_spikes = np.add.reduceat(data_MU, np.arange(0, num_bins * bin_size_samples, bin_size_samples), axis=1)
+    binned_force = np.add.reduceat(force[:num_bins * bin_size_samples], np.arange(0, num_bins * bin_size_samples, bin_size_samples)) / bin_size_samples
 
-    binned_force = np.add.reduceat(force[:num_bins * bin_size_ms], np.arange(0, num_bins * bin_size_ms, bin_size_ms)) / bin_size_ms
-
-    mnpair= data['Idx_MU_Pair'].tolist()
+    mnpair = data['Idx_MU_Pair'].tolist()
 
     return binned_spikes, binned_force, mnpair
+
 
 
 def create_force_glm_data_with_history(force, spikes, history_bins):

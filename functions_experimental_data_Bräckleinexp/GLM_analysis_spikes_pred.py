@@ -3,16 +3,30 @@ import pickle
 import numpy as np      
 
 
-def load_and_preprocess(file,folder_path, bin_size_ms):
-    """Load a single trial and preprocess"""
+def load_and_preprocess(file, folder_path, bin_size_ms, sampling_freq=2048):
     file_path = os.path.join(folder_path, file)
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
     
-    data_MU = np.array(data['MU'].tolist())  
-    binned_spikes = np.add.reduceat(data_MU, np.arange(0, data_MU.shape[1], bin_size_ms), axis=1)
-    mnpair= data['Idx_MU_Pair'].tolist()
+    data_MU = np.array(data['MU'].tolist())  # neurons x samples
+    
+    bin_size_samples = int(bin_size_ms * sampling_freq / 1000)    
+    binned_spikes = np.add.reduceat(data_MU, np.arange(0, data_MU.shape[1], bin_size_samples), axis=1)
+    mnpair = data['Idx_MU_Pair'].tolist()
+    
     return binned_spikes.T, data, mnpair
+
+
+# def load_and_preprocess(file,folder_path, bin_size_ms):
+#     """Load a single trial and preprocess"""
+#     file_path = os.path.join(folder_path, file)
+#     with open(file_path, 'rb') as f:
+#         data = pickle.load(f)
+    
+#     data_MU = np.array(data['MU'].tolist())  
+#     binned_spikes = np.add.reduceat(data_MU, np.arange(0, data_MU.shape[1], bin_size_ms), axis=1)
+#     mnpair= data['Idx_MU_Pair'].tolist()
+#     return binned_spikes.T, data, mnpair
 
 
 def create_glm_data_with_history(spike_data, history_bins, target_idx):

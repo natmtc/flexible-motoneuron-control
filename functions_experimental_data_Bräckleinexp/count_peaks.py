@@ -75,7 +75,7 @@ def create_peak_count_summary(directory_paths, fsamp, extract_day, extract_trial
 
         avg_peaks_per_day = [np.mean(peak_counts_by_day[day]) for day in session_days]
         std_peaks_per_day = [np.std(peak_counts_by_day[day]) for day in session_days]
-
+      
         ax = axes[idx]
         bars = ax.bar(
             session_days,
@@ -91,10 +91,22 @@ def create_peak_count_summary(directory_paths, fsamp, extract_day, extract_trial
         ax.set_ylabel("Average Number of Peaks", fontsize=25)
         ax.set_title(f"({folder_name})", fontsize=25)
         ax.set_ylim([0, 13])
+
+        # Set xticks for all positions with integer labels
         ax.set_xticks(np.arange(len(session_days)))
-        ax.set_xticklabels([str(int(day[3:])) for day in session_days])
-        ax.tick_params(axis='x', labelsize=20, which='both', length=0)
-        ax.tick_params(axis='y', labelsize=20, which='both', length=0)
+        ax.set_xticklabels([str(int(day[3:])) for day in session_days], fontsize=20)
+
+        # Ensure y-ticks show every integer in the range
+        ax.set_yticks(np.arange(0, 14, 1))
+        ax.tick_params(axis='y', labelsize=20)
+
+        # Remove top and right spines
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+        # Optional: if you want ticks to point *outward*
+        ax.tick_params(direction='out', length=6)
+
 
     # Remove unused axes if fewer folders than subplots
     for j in range(idx + 1, len(axes)):
