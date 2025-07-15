@@ -34,12 +34,14 @@ def plot_firing_rates(folder_path, pkl_files, fsamp=2048, window_duration=0.3, s
 
         data_MU = np.array(data['MU'].tolist())  
         smoothed_firing_rates = compute_firing_rates(data_MU, fsamp, window_duration)
+        idx_pair = data['Idx_MU_Pair'].tolist()
 
         ax = axes[idx]
         time_axis = np.arange(data_MU.shape[1]) / fsamp  # Convert sample index to time in seconds
 
         for neuron_idx in range(data_MU.shape[0]):
-            ax.plot(time_axis, smoothed_firing_rates[neuron_idx, :], label=f'Neuron {neuron_idx}', alpha=0.7)
+            if neuron_idx==idx_pair[1]:
+                ax.plot(time_axis, smoothed_firing_rates[neuron_idx, :], label=f'Neuron {neuron_idx}', alpha=0.7)
 
         num_neurons = data_MU.shape[0]  # Count the number of motoneurons
         ax.set_title(f'{session_label} - Trial: {file}', fontsize=10)

@@ -6,8 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-
-
 # Extract day from filename
 def extract_day(filename):
     match = re.search(r"(Day\d{2})", filename)
@@ -17,8 +15,6 @@ def extract_day(filename):
 def extract_trial(filename):
     match = re.search(r'_(\d+)[^0-9]', filename)  
     return int(match.group(1)) if match else 0  
-
-
 
 def create_force_plots_by_day(directory_path, fsamp, highlight_samples, extract_day, extract_trial):
     """
