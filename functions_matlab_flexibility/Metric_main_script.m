@@ -21,11 +21,15 @@
     
     ncomb = nchoosek(1:1:size(spike_array,1),2);
     displacement = zeros(1,size(ncomb,1));
-    dispersion = zeros(1,size(ncomb,1));
     different_biophysical_properties = zeros(1,size(ncomb,1));
 
     for i = 1:size(ncomb,1)
-        displacement(i) = max(mudisplacement({smoothedDR([ncomb(i,:)],:)}, 50));
-        dispersion(i) = max(mnpdispersion({smoothedDR([ncomb(i,:)],:)}, 50));
+        displacement(i) = max(mudisplacement({smoothedDR([ncomb(i,:)],:)}, 20000));
         different_biophysical_properties(i)=(VthCa_newTA(ncomb(i,1))- VthCa_newTA(ncomb(i,2)));
     end
+
+
+
+
+
+  

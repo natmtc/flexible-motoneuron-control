@@ -35,5 +35,6 @@ function plot_MN_trajectory(spike_array::Matrix{Float64}, idx1::Int, idx2::Int; 
         Plots.plot!(p, lines_x[i], lines_y[i], color=color_map[i], linewidth=4)
     end
 
-    return p
+    return p, avg_traj
+    
 end
