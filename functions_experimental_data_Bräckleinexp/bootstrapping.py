@@ -1,3 +1,5 @@
+import numpy as np 
+
 def bootstrap_pr2_analysis(session_pR2, n_bootstrap=1000):
     bootstrap_results = {}
     session_bootstrap_means = {}

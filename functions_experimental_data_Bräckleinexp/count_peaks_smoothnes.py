@@ -12,18 +12,15 @@ def extract_day(filename):
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None  
 
-# Extract trial number from filename
 def extract_trial(filename):
     match = re.search(r'_(\d+)[^0-9]', filename)  
     return int(match.group(1)) if match else 0  
 
-# Define Low-pass filter (Butterworth)
 def lowpass_filter(data, cutoff=0.5, fs=2048, order=4):
     nyquist = 0.5 * fs
     normal_cutoff = cutoff / nyquist
     b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
     return signal.filtfilt(b, a, data)
-
 
 
 def create_peak_count_summary(directory_paths, fsamp, extract_day, extract_trial, lowpass_filter):
@@ -90,14 +87,14 @@ def create_peak_count_summary(directory_paths, fsamp, extract_day, extract_trial
         ax.set_xlabel("Session (Day)", fontsize=25)
         ax.set_ylabel("Average Number of Peaks", fontsize=25)
         ax.set_title(f"({folder_name})", fontsize=25)
-        ax.set_ylim([0, 13])
+        ax.set_ylim([0, 15])
 
         # Set xticks for all positions with integer labels
         ax.set_xticks(np.arange(len(session_days)))
         ax.set_xticklabels([str(int(day[3:])) for day in session_days], fontsize=20)
 
         # Ensure y-ticks show every integer in the range
-        ax.set_yticks(np.arange(0, 14, 1))
+        ax.set_yticks(np.arange(0, 16, 5))
         ax.tick_params(axis='y', labelsize=20)
 
         # Remove top and right spines

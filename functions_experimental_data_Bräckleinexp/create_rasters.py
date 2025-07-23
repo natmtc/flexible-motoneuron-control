@@ -15,8 +15,6 @@ def extract_trial(filename):
     match = re.search(r'_(\d+)[^0-9]', filename)  # Extracts numeric trial number before a non-digit
     return int(match.group(1)) if match else 0  # Default to 0 if no match found
 
-
-
 def create_raster(folder_path, Fsamp, extract_day, extract_trial):
     """
     Create a matplotlib figure with spike rasters for all trial files in the folder.
