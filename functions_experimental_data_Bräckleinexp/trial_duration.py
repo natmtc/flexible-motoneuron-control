@@ -134,7 +134,7 @@ def plot_first_last_two_days_duration_box(directory_path, fsamp):
 
     ax.set_ylabel("Trial duration (s)", fontsize=18)
     ax.set_xlabel("")
-    ax.set_ylim([0, 25])
+    ax.set_ylim([0, 40])
     ax.set_xticklabels(["First sessions", "Last sessions"], fontsize=16)
     ax.tick_params(axis='y', labelsize=14)
     sns.despine(trim=True)

@@ -93,8 +93,6 @@ def create_force_plots_by_day(directory_path, fsamp, highlight_samples, extract_
 
 
 def plot_force_trials(directory_path, output_path, fsamp=2048, highlight_sec=3):
-
-
     highlight_samples = int(highlight_sec * fsamp)
 
     def extract_day(filename):
@@ -105,43 +103,47 @@ def plot_force_trials(directory_path, output_path, fsamp=2048, highlight_sec=3):
         match = re.search(r'_(\d+)[^0-9]', filename)
         return int(match.group(1)) if match else 0
 
-    # Get all .pkl files in directory
+    # Get all valid .pkl files
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
 
-    # Group files by day
+    # Group files by day (only keep ones that can be loaded and have Force)
     files_by_day = {}
     for file in pkl_files:
-        day = extract_day(file)
-        if day:
-            files_by_day.setdefault(day, []).append(file)
+        try:
+            with open(os.path.join(directory_path, file), 'rb') as f:
+                data = pickle.load(f)
+            if 'Force' in data and len(data['Force']) > 0:
+                day = extract_day(file)
+                if day:
+                    files_by_day.setdefault(day, []).append(file)
+        except Exception:
+            continue
 
     session_days = sorted(files_by_day.keys())
+    if len(session_days) < 4:
+        print("Not enough days with valid data.")
+        return
+
+    # Select first 2 and last 2
     selected_sessions = session_days[:2] + session_days[-2:]
-    sorted_pkl_files = []
-    for day in selected_sessions:
-        sorted_pkl_files.extend(files_by_day[day])
-
-    # Color map
-    num_days = len(session_days)
-    if num_days <= 20:
-        color_map = {day: cm.get_cmap("tab20")(i) for i, day in enumerate(session_days)}
-    else:
-        color_map = {day: cm.viridis(i / num_days) for i, day in enumerate(session_days)}
-
-    # Group early/late trials
     early_days = session_days[:2]
     late_days = session_days[-2:]
-    early_trials = [f for f in sorted_pkl_files if extract_day(f) in early_days]
-    late_trials = [f for f in sorted_pkl_files if extract_day(f) in late_days]
+
+    # Sort files per group
+    early_trials = [f for d in early_days for f in sorted(files_by_day[d], key=extract_trial)]
+    late_trials = [f for d in late_days for f in sorted(files_by_day[d], key=extract_trial)]
     grouped_files = early_trials + late_trials
 
-    # Layout
+    # Colors
+    num_days = len(session_days)
+    color_map = {day: cm.get_cmap("tab20")(i) if num_days <= 20 else cm.viridis(i / num_days) 
+                 for i, day in enumerate(session_days)}
+
+    # Layout: 2 columns per group (early, late)
     num_files = len(grouped_files)
-    cols = 4
-    rows = int(np.ceil(num_files / cols))
-    fig, axes = plt.subplots(rows, cols, figsize=(15, rows * 3))
-    if rows == 1:
-        axes = axes[np.newaxis, :]
+    rows_needed = max(int(np.ceil(len(early_trials) / 2)), int(np.ceil(len(late_trials) / 2)))
+    fig, axes = plt.subplots(rows_needed, 4, figsize=(16, rows_needed * 3))
+    axes = np.atleast_2d(axes)
 
     # Global y-limits
     all_forces = []
@@ -154,14 +156,23 @@ def plot_force_trials(directory_path, output_path, fsamp=2048, highlight_sec=3):
 
     # Plot
     for i, file_name in enumerate(grouped_files):
-        col_offset = 0 if i < len(early_trials) else 2
-        local_idx = i if i < len(early_trials) else i - len(early_trials)
+        if i < len(early_trials):
+            col_offset = 0
+            local_idx = i
+        else:
+            col_offset = 2
+            local_idx = i - len(early_trials)
+
         row_idx = local_idx // 2
         col_idx = local_idx % 2 + col_offset
-        ax = axes[row_idx, col_idx]
 
+        if row_idx >= rows_needed or col_idx >= 4:
+            continue  # safety check
+
+        ax = axes[row_idx, col_idx]
         with open(os.path.join(directory_path, file_name), 'rb') as f:
             data = pickle.load(f)
+
         data_FORCE = np.array(data['Force'].tolist())[0]
         time_axis = np.arange(len(data_FORCE)) / fsamp
         start_region = np.arange(highlight_samples)
@@ -181,13 +192,19 @@ def plot_force_trials(directory_path, output_path, fsamp=2048, highlight_sec=3):
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-        if col_idx == 0:
+        if col_idx == 0 or col_idx == 2:
             ax.set_ylabel("Force", fontsize=25)
             ax.tick_params(axis='y', length=5, labelsize=25)
 
-        if row_idx == rows - 1:
+        if row_idx == rows_needed - 1:
             ax.set_xlabel("Time (s)", fontsize=25)
             ax.tick_params(axis='x', length=5, labelsize=25)
+
+    # Hide any unused axes
+    for r in range(rows_needed):
+        for c in range(4):
+            if r * 4 + c >= num_files:
+                axes[r, c].axis('off')
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')

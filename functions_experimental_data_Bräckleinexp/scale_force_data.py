@@ -88,7 +88,7 @@ def compute_and_save_avg_force(directory_path, save_dir, file_prefix="avg_force"
         save_path = os.path.join(save_dir, filename)
         np.save(save_path, scaled_force)
         print(f"Saved scaled force for {day} to {save_path}")
-
+    
     if plot:
         cols = 3
         rows = int(np.ceil(len(session_days) / cols))
@@ -97,18 +97,18 @@ def compute_and_save_avg_force(directory_path, save_dir, file_prefix="avg_force"
         cmap = cm.get_cmap("tab10")
 
         for i, day in enumerate(session_days):
-            mean = average_force_by_day[day]['mean']
-            std = average_force_by_day[day]['std']
+            mean = average_force_by_day[day]['mean'] * scaling_factor
+            std = average_force_by_day[day]['std'] * scaling_factor
             t = time_by_day[day]
             color = cmap(i % 10)
 
             ax = axes[i]
-            ax.plot(t, mean, color=color, label='Mean Force')
-            ax.fill_between(t, mean - std, mean + std, color=color, alpha=0.3, label='±1 SD')
+            ax.plot(t, mean, color=color, label='Scaled Mean Force')
+            ax.fill_between(t, mean - std, mean + std, color=color, alpha=0.3, label='±1 SD (scaled)')
             ax.set_title(f"{day}", fontsize=12)
             ax.set_xlabel("Time (s)")
-            ax.set_ylabel("Force")
-            ax.set_ylim([0, 0.2])
+            ax.set_ylabel("Scaled Force")
+            ax.set_ylim([0, target_max * 1.1])
             ax.grid(True)
             ax.legend(fontsize=8)
 
