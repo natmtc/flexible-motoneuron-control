@@ -38,6 +38,7 @@ def area_above(freqs, spec, fmin):
     return np.trapz(spec[mask], freqs[mask])  # V^2
 
 def plot_fft_and_compute_metric_per_trial(directory, fsamp=2048, fmin=5.0, max_freq=30):
+
     # Group files by day and sort by trial
     pkl_files = [f for f in os.listdir(directory) if f.endswith('.pkl')]
     by_day = {}
@@ -93,7 +94,6 @@ def plot_fft_and_compute_metric_per_trial(directory, fsamp=2048, fmin=5.0, max_f
         if max_freq is None or fmin <= max_freq:
             plt.axvline(5, linestyle='--', linewidth=1)
 
-        # Tidy up legend (many trials → use outside box)
         plt.legend(title='Trials', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
         plt.tight_layout()
         plt.show()
