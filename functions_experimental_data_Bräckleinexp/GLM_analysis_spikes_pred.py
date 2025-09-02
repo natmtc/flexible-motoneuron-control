@@ -105,22 +105,16 @@ def compute_pR2_mcfadden(model, X, Y):
 
 
 
-def compute_pR2(model, X, Y):
-    y_pred = model.predict(X)
-    y_pred = np.clip(y_pred, 1e-12, None)
-
-    y_mean = np.mean(Y)
-    if np.all(Y == 0) or np.all(y_pred == 0):
+def compute_pR2(y_true, y_pred, eps=1e-12):
+    y = np.asarray(y_true, dtype=float)
+    lam = np.clip(np.asarray(y_pred, dtype=float), eps, None)
+    def logL(y, lam):
+        return np.sum(y * np.log(lam) - lam - gammaln(y + 1))
+    nz = y > 0
+    ll_sat  = np.sum(y[nz] * np.log(y[nz])) - np.sum(y) - np.sum(gammaln(y + 1))
+    ll_model = logL(y, lam)
+    ll_null  = logL(y, np.full_like(y, y.mean()))
+    denom = ll_sat - ll_null
+    if denom == 0 or not np.isfinite(denom):
         return np.nan
-
-    # Use original Y for saturated model, clip only inside log
-    ll_model = np.sum(Y * np.log(y_pred) - y_pred)
-    ll_null = np.sum(Y * np.log(y_mean) - y_mean)
-    ll_data = np.sum(Y * np.log(np.clip(Y, 1e-12, None)) - Y)
-
-    denom = ll_data - ll_null
-    if denom <= 0 or np.isnan(denom):
-        return np.nan
-
-    r2 = 1 - (ll_model - ll_null) / denom
-    return min(1.0, r2)
+    return 1.0 - (ll_sat - ll_model) / denom
