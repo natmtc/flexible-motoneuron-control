@@ -1,9 +1,13 @@
 import os               
 import pickle          
 import numpy as np      
+from scipy.special import gammaln
 
 
 def load_and_preprocess(file, folder_path, bin_size_ms, sampling_freq=2048):
+    """
+    Load data and preprocess it so we have the GLM format.
+    """   
     file_path = os.path.join(folder_path, file)
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
@@ -15,18 +19,6 @@ def load_and_preprocess(file, folder_path, bin_size_ms, sampling_freq=2048):
     mnpair = data['Idx_MU_Pair'].tolist()
     
     return binned_spikes.T, data, mnpair
-
-
-# def load_and_preprocess(file,folder_path, bin_size_ms):
-#     """Load a single trial and preprocess"""
-#     file_path = os.path.join(folder_path, file)
-#     with open(file_path, 'rb') as f:
-#         data = pickle.load(f)
-    
-#     data_MU = np.array(data['MU'].tolist())  
-#     binned_spikes = np.add.reduceat(data_MU, np.arange(0, data_MU.shape[1], bin_size_ms), axis=1)
-#     mnpair= data['Idx_MU_Pair'].tolist()
-#     return binned_spikes.T, data, mnpair
 
 
 def create_glm_data_with_history(spike_data, history_bins, target_idx):
@@ -63,6 +55,7 @@ def create_glm_data(spike_data, target_idx):
     """
     Create X (predictors) and Y (target) for GLM using only instantaneous (same-bin) population activity, excluding the target neuron from the predictors.
     """
+    
     num_timebins, num_neurons = spike_data.shape
 
     # Identify neurons that spike more than 10 times
@@ -106,6 +99,8 @@ def compute_pR2_mcfadden(model, X, Y):
 
 
 def compute_pR2(y_true, y_pred, eps=1e-12):
+    """Compute pseudo-R² as Perich et al. 2018"""
+    
     y = np.asarray(y_true, dtype=float)
     lam = np.clip(np.asarray(y_pred, dtype=float), eps, None)
     def logL(y, lam):
