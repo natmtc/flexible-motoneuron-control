@@ -31,15 +31,18 @@ We also analyzed experimental data from Mario Bräcklein’s study (14-day datas
 <p align="center">
   <img src="pictures_for_explanation/glm.png" alt="Output_model"  width="700">
 </p>
-This project demonstrates that the only way humans can volitionally elicit a **certain degree of flexibility** motoneuron behaviors is through **neuromodulatory input**, which alters derecruitment dynamics **without violating the size principle**.
+This project demonstrates that the only way humans can volitionally elicit a certain degree of flexibility** motoneuron behaviors is through **neuromodulatory input, which alters derecruitment dynamics without violating the size principle.
 
 
 ## Features
-- **Biophysical motoneuron model** based on Hodgkin-Huxley equations
-- **Two-compartment structure** (soma & dendrite)
-- **Force-tracking validation** 
-- **Simulates spiking activity** and **derecruitment variability** in motoneuron pools
-- **Motoneuron pool correlation over learning**
+- **Biophysical motoneuron model** 
+- **Force-tracking validation**
+- **Model optimization**
+- **Replication of spiking activity** and **derecruitment variability** 
+- **Simulations of online cursor-control experiments of motoneuron pairs** 
+- **Experimental data over days**
+- **GLM models (spike and force model) to study correlation of the motoneuron pair over days**
+
 
 ## Installation and dependencies for model coded in Julia
 
