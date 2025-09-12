@@ -1,37 +1,41 @@
-# Neuromodulation produces deviations from rigid control
+# Neuromodulation explain deviations from classic rigid control
 
-In this project, we implemented a **biophysical model** of a motoneuron based on the Hodgkin-Huxley equations, incorporating two compartments: a dendrite and a soma. 
+We implemented a **two-compartment biophysical model** of a motoneuron, extending classical Hodgkin–Huxley equations to study the limits of flexible motoneuron control. The model **reproduces the high variability observed in vivo** and mimics **2D online cursor-control experiments**, where participants learned to **decorrelate motoneuron pairs with similar recruitment thresholds and intrinsic properties**.
 
-To replicate neuromodulatory effects we optimize the voltage deactivation thresholds of Calcium channels.
+Our results show that **neuromodulatory input from the brainstem** can shift motoneuron behavior away from rigid size-principle control, particularly during derecruitment, leading to decorrelation of motoneuron pairs and enabling control of additional degrees of freedom.
 
-
-<p align="center">
-  <img src="pictures_for_explanation/diagram.png" alt="Circuit Diagram" width="800">
-</p>
-
-
-To verify the model's ability to replicate **force-tracking tasks**, we implemented a Proportional-Derivative (PD) controller, which minimizes the error between the target and actual force output.
-
-The model was validated using experimental data from the **Tibialis Anterior** muscle of eight participants (Avrillon et al., 2024, *eLife*), recorded during trapezoidal isometric contractions.
-
-As a result, our model successfully simulates the spiking activity of a motoneuron pool, accurately **reproducing derecruitment times variability influenced by neuromodulatory constraints** originating from the brainstem.
+We **optimized calcium channel deactivation thresholds** (Black box optimization), which regulate the amount of hysteresis ( prolonged firing after cessation of synaptic input).
 
 
 <p align="center">
-  <img src="pictures_for_explanation/output.png" alt="Output_model">
+  <img src="pictures_for_explanation/diagram.png" alt="Biophysical model of a motoneuron" width="800">
 </p>
 
 
+To verify the model’s ability to replicate **force-tracking tasks** (trapezoidal, sinusoidal, chirp), we implemented a **Proportional-Derivative (PD) controller** that minimizes the error between target and actual force output.
 
-Everything related to the model is implemented in Julia due to its computational efficiency, particularly for solving the Runge-Kutta 4th order (RK4) method, which allows for faster voltage computations at any time point.
+The model was **validated with experimental data** (129 ± 44 motoneurons per subject) from the **Tibialis Anterior** muscle of eight participants (Avrillon et al., 2024, eLife). Our simulations **successfully reproduce the spiking activity of a motoneuron pool**, capturing both the collective force dynamics and the variability observed experimentally.
 
-Another **PD controller** was used to mimick the task described in Bräcklein et al. 2022 (eLife) where participants decorrelate the activity of pairs of motoneurons.
 
-Additional metrics from **Marshall et al., 2022 (*Nature*)** are incorporated in `.mat` format.
+<p align="center">
+  <img src="pictures_for_explanation/output_rasters.png" alt="Output_model">
+</p>
 
-Experimental data analysis from **Mario Bräcklein's study** was conducted in **Python**, providing insights into **how the correlated  activity of the pool evolves with learning- mainly through a spiking GLM analysis**.
+Another PD controller was implemented to **reproduce the task described in Bräcklein et al., 2022 (eLife)**, where participants were instructed to **independently control pairs of motoneurons by altering their recruitment order**. In practice, true independent recruitment **was not possible** — instead, participants **achieved only apparent flexible behaviors by modulating derecruitment dynamics**, highlighting a fundamental physiological constraint.
 
-This project extensively explores how **neuromodulation produces deviations from the classic rigid control**, which allows a decorrelation between motoneuron pair activity. 
+<p align="center">
+  <img src="pictures_for_explanation/flexible_exp.png" alt="Output_model">
+</p>
+
+
+We also analyzed experimental data from Mario Bräcklein’s study (14-day dataset) to determine whether participants’ **improvements in motoneuron control** were driven by  **physiological changes or by behavioral adaptation** strategies. We used spiking GLM models to track how correlated activity within the motoneuron pool evolved with learning.
+<p align="center">
+  <img src="pictures_for_explanation/glmintro.png" alt="Output_model">
+</p>
+<p align="center">
+  <img src="pictures_for_explanation/glm.png" alt="Output_model">
+</p>
+This project demonstrates that the only way humans can volitionally elicit a **certain degree of flexibility** motoneuron behaviors is through **neuromodulatory input**, which alters derecruitment dynamics **without violating the size principle**.
 
 
 ## Features

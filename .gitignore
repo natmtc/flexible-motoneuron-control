@@ -28,3 +28,6 @@ Manifest.toml
 Data_MN_Model/
 
 wandb/
+
+Plot_figures.ipynb
+
