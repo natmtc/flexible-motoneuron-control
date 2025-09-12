@@ -24,13 +24,12 @@ The model was **validated with experimental data** (129 ± 44 motoneurons per su
 Another PD controller was implemented to **reproduce the task described in Bräcklein et al., 2022 (eLife)**, where participants were instructed to **independently control pairs of motoneurons by altering their recruitment order**. In practice, true independent recruitment **was not possible** — instead, participants **achieved only apparent flexible behaviors by modulating derecruitment dynamics**, highlighting a fundamental physiological constraint.
 
 <p align="center">
-  <img src="pictures_for_explanation/flexibleexp.png" alt="Output_model">
+  <img src="pictures_for_explanation/flexibleexp.png" alt="Output_model" width="300">
 </p>
-
 
 We also analyzed experimental data from Mario Bräcklein’s study (14-day dataset) to determine whether participants’ **improvements in motoneuron control** were driven by  **physiological changes or by behavioral adaptation** strategies. We used spiking GLM models to track how correlated activity within the motoneuron pool evolved with learning.
 <p align="center">
-  <img src="pictures_for_explanation/glmintro.png" alt="Output_model">
+  <img src="pictures_for_explanation/glmintro.png" alt="Output_model"  width="300">
 </p>
 <p align="center">
   <img src="pictures_for_explanation/glm.png" alt="Output_model">
