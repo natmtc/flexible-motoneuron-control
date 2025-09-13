@@ -1,3 +1,10 @@
+import os
+import re
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from scipy.interpolate import interp1d
 
 
 def extract_day(filename):
@@ -8,7 +15,9 @@ def extract_trial(filename):
     match = re.search(r'_(\d+)[^0-9]', filename)
     return int(match.group(1)) if match else 0
 
-def compute_representative_trial(directory_path, save_dir, file_prefix="represetative_trial", target_max=0.4, fsamp=2048, plot=True,trial_numbers_by_day=None):
+def compute_representative_trial(directory_path, save_dir, file_prefix="represetative_trial", 
+                               target_max=0.4, fsamp=2048, plot=True,
+                               trial_numbers_by_day=None):
 
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
     files_by_day = {}
@@ -91,9 +100,9 @@ def compute_representative_trial(directory_path, save_dir, file_prefix="represet
         sel_trial = average_force_by_day[day]['selected_trialnum']
         suffix = f"_trial{sel_trial:02d}"
 
-        filename = f"{file_prefix}_{day}.npy"
+        filename = f"{file_prefix}_{day}{suffix}_scaled{int(round(target_max*100)):03d}.npy"
         save_path = os.path.join(save_dir, filename)
-        # np.save(save_path , scaled_force)
+        np.save(save_path, scaled_force)
         print(f"Saved scaled force for {day} to {save_path}")
 
     if plot:
@@ -125,3 +134,5 @@ def compute_representative_trial(directory_path, save_dir, file_prefix="represet
 
         plt.tight_layout()
         plt.show()
+
+
