@@ -4,6 +4,9 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import os, re, pickle
+from matplotlib.patches import Rectangle
+from matplotlib.ticker import FuncFormatter
 
 def extract_day(filename):
     match = re.search(r"(Day\d{2})", filename)
@@ -92,120 +95,196 @@ def create_force_plots_by_day(directory_path, fsamp, highlight_samples, extract_
     return fig
 
 
-def plot_force_trials(directory_path, output_path, fsamp=2048, highlight_sec=3):
-    highlight_samples = int(highlight_sec * fsamp)
+def plot_force_trials_block(
+    directory_path,
+    fsamp=2048,
+    highlight_seconds=0,
+    long_trial_thresh_s=19.0,
+    y_max=0.2,
+    font_family="Arial",
+    tick_size=30,
+    line_width=1.2,
+    rect_edge_lw=3,
+    save_path=None
+):
+    """Plot force trajectories in a 2x2 block:
+       - Left block (cols 0–1): Day1 top, Day2 bottom
+       - Right block (cols 2–3): Day(-2) top, Day(-1) bottom
+       Each day uses TWO columns; trials fill down first column then second.
+    """
 
+    # ----------------------------
+    # Style
+    # ----------------------------
+    plt.rcParams["font.family"] = font_family
+    plt.rcParams["axes.labelsize"] = 0     # no axis labels
+    plt.rcParams["axes.titlesize"] = 0     # no titles
+    plt.rcParams["xtick.labelsize"] = tick_size
+    plt.rcParams["ytick.labelsize"] = tick_size
+
+    def _nice_fmt(x, pos):
+        # drop .0 but keep other decimals
+        if abs(x - round(x)) < 1e-9:
+            return f"{int(round(x))}"
+        s = f"{x:.2f}".rstrip("0").rstrip(".")
+        return s
+    fmt = FuncFormatter(_nice_fmt)
+
+    # ----------------------------
+    # Helpers
+    # ----------------------------
     def extract_day(filename):
-        match = re.search(r"(Day\d{2})", filename)
-        return match.group(1) if match else None
+        m = re.search(r"(Day\d{2})", filename)
+        return m.group(1) if m else None
 
     def extract_trial(filename):
-        match = re.search(r'_(\d+)[^0-9]', filename)
-        return int(match.group(1)) if match else 0
+        m = re.search(r'_(\d+)[^0-9]', filename)
+        return int(m.group(1)) if m else 0
 
-    # Get all valid .pkl files
+    def load_force(path):
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+        try:
+            x = np.asarray(data["Force"]).squeeze()
+            if x.ndim > 1:
+                x = np.asarray(data["Force"].tolist())[0].squeeze()
+        except Exception:
+            x = np.asarray(data["Force"].tolist())[0].squeeze()
+        return np.asarray(x, float)
+
+    # ----------------------------
+    # Collect files and group by day
+    # ----------------------------
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
-
-    # Group files by day (only keep ones that can be loaded and have Force)
     files_by_day = {}
     for file in pkl_files:
-        try:
-            with open(os.path.join(directory_path, file), 'rb') as f:
-                data = pickle.load(f)
-            if 'Force' in data and len(data['Force']) > 0:
-                day = extract_day(file)
-                if day:
-                    files_by_day.setdefault(day, []).append(file)
-        except Exception:
-            continue
+        day = extract_day(file)
+        if day:
+            files_by_day.setdefault(day, []).append(file)
 
     session_days = sorted(files_by_day.keys())
+    for d in session_days:
+        files_by_day[d].sort(key=extract_trial)
+
     if len(session_days) < 4:
-        print("Not enough days with valid data.")
-        return
+        raise RuntimeError("Need at least 4 distinct days in the folder.")
 
-    # Select first 2 and last 2
-    selected_sessions = session_days[:2] + session_days[-2:]
-    early_days = session_days[:2]
-    late_days = session_days[-2:]
+    left_days  = [session_days[0], session_days[1]]
+    right_days = [session_days[-2], session_days[-1]]
 
-    # Sort files per group
-    early_trials = [f for d in early_days for f in sorted(files_by_day[d], key=extract_trial)]
-    late_trials = [f for d in late_days for f in sorted(files_by_day[d], key=extract_trial)]
-    grouped_files = early_trials + late_trials
-
-    # Colors
+    # Day colors
     num_days = len(session_days)
-    color_map = {day: cm.get_cmap("tab20")(i) if num_days <= 20 else cm.viridis(i / num_days) 
-                 for i, day in enumerate(session_days)}
+    if num_days <= 20:
+        cmap = cm.get_cmap("tab20")
+        day_color = {day: cmap(i % 20) for i, day in enumerate(session_days)}
+    else:
+        day_color = {day: cm.viridis(i / max(1, num_days - 1)) for i, day in enumerate(session_days)}
 
-    # Layout: 2 columns per group (early, late)
-    num_files = len(grouped_files)
-    rows_needed = max(int(np.ceil(len(early_trials) / 2)), int(np.ceil(len(late_trials) / 2)))
-    fig, axes = plt.subplots(rows_needed, 4, figsize=(16, rows_needed * 3))
-    axes = np.atleast_2d(axes)
+    # ----------------------------
+    # Axis limits (Y fixed to 0..y_max)
+    # ----------------------------
+    y_min = 0.0
 
-    # Global y-limits
-    all_forces = []
-    for file_name in grouped_files:
-        with open(os.path.join(directory_path, file_name), 'rb') as f:
-            data = pickle.load(f)
-        all_forces.extend(np.array(data['Force'].tolist())[0])
-    all_forces = np.array(all_forces)
-    ymin, ymax = np.min(all_forces), np.max(all_forces)
+    # ----------------------------
+    # Layout math
+    # ----------------------------
+    def rows_for_day(day):
+        return int(np.ceil(len(files_by_day[day]) / 2)) or 1
 
-    # Plot
-    for i, file_name in enumerate(grouped_files):
-        if i < len(early_trials):
-            col_offset = 0
-            local_idx = i
-        else:
-            col_offset = 2
-            local_idx = i - len(early_trials)
+    left_rows_top     = rows_for_day(left_days[0])
+    left_rows_bottom  = rows_for_day(left_days[1])
+    right_rows_top    = rows_for_day(right_days[0])
+    right_rows_bottom = rows_for_day(right_days[1])
 
-        row_idx = local_idx // 2
-        col_idx = local_idx % 2 + col_offset
+    left_total_rows  = left_rows_top + left_rows_bottom
+    right_total_rows = right_rows_top + right_rows_bottom
+    ROWS = max(left_total_rows, right_total_rows)
+    COLS = 4
 
-        if row_idx >= rows_needed or col_idx >= 4:
-            continue  # safety check
+    fig, axes = plt.subplots(ROWS, COLS, figsize=(15, ROWS * 3), squeeze=False)
 
-        ax = axes[row_idx, col_idx]
-        with open(os.path.join(directory_path, file_name), 'rb') as f:
-            data = pickle.load(f)
+    # ----------------------------
+    # Plotting helper
+    # ----------------------------
+    highlight_samples = int(highlight_seconds * fsamp)
 
-        data_FORCE = np.array(data['Force'].tolist())[0]
-        time_axis = np.arange(len(data_FORCE)) / fsamp
-        start_region = np.arange(highlight_samples)
-        end_region = np.arange(len(data_FORCE) - highlight_samples, len(data_FORCE))
-        day_info = extract_day(file_name)
-        day_color = color_map.get(day_info, "white")
+    def plot_day(day, start_row, block_col0, block_col1):
+        flist  = files_by_day[day]
+        rcount = rows_for_day(day)
+        dcolor = day_color.get(day, "black")
 
-        ax.plot(time_axis, data_FORCE, color="black", alpha=0.8)
-        ax.add_patch(plt.Rectangle((0, ymin), time_axis[-1], ymax - ymin, color='white',
-                                   ec=day_color, lw=4, fill=False, zorder=-30))
-        ax.plot(time_axis[start_region], data_FORCE[start_region], color="black", alpha=1)
-        ax.plot(time_axis[end_region], data_FORCE[end_region], color="black", alpha=1)
+        for k, fname in enumerate(flist):
+            r_local = k % rcount
+            c_local = k // rcount
+            if c_local > 1:
+                c_local = 1
+                r_local = min(r_local + rows_for_day(day), rcount - 1)
 
-        ax.set_ylim(ymin, ymax)
-        ax.tick_params(axis='y', which='both', length=0, labelsize=0)
-        ax.tick_params(axis='x', which='both', length=0, labelsize=25)
-        for spine in ax.spines.values():
-            spine.set_visible(False)
+            r = start_row + r_local
+            c = block_col0 if c_local == 0 else block_col1
+            if r >= ROWS:
+                continue
 
-        if col_idx == 0 or col_idx == 2:
-            ax.set_ylabel("Force", fontsize=25)
-            ax.tick_params(axis='y', length=5, labelsize=25)
+            ax = axes[r, c]
+            force = load_force(os.path.join(directory_path, fname))
+            t = np.arange(len(force)) / fsamp
+            duration_s = t[-1] if len(t) else 0.0
 
-        if row_idx == rows_needed - 1:
-            ax.set_xlabel("Time (s)", fontsize=25)
-            ax.tick_params(axis='x', length=5, labelsize=25)
+            # ----- Draw background rectangle in data coords: x [0, t[-1]], y [0, y_max]
+            rect_width = t[-1] if len(t) else 0.0
+            is_long = duration_s > long_trial_thresh_s
+            ax.add_patch(Rectangle(
+                (0.0, y_min), rect_width, (y_max - y_min),
+                fill=is_long,
+                facecolor=(0.94, 0.94, 0.94) if is_long else "none",
+                ec=dcolor, lw=rect_edge_lw, zorder=-5
+            ))
 
-    # Hide any unused axes
-    for r in range(rows_needed):
-        for c in range(4):
-            if r * 4 + c >= num_files:
-                axes[r, c].axis('off')
+            # Trace
+            ax.plot(t, force, color="black", alpha=0.9, linewidth=line_width)
+
+            # Start/end highlight
+            if highlight_samples > 0 and len(force) > 0:
+                hs = min(highlight_samples, len(force))
+                ax.plot(t[:hs], force[:hs], color="black", linewidth=line_width + 0.15)
+                ax.plot(t[-hs:], force[-hs:], color="black", linewidth=line_width + 0.15)
+
+            # Fixed axis limits and formatting
+            ax.set_ylim(y_min, y_max)
+            # (Optional) unify x-limits, comment out next line if you want natural width
+            # ax.set_xlim(0.0, max_x)
+
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+
+            # No labels/titles; ticks formatted
+            ax.set_title(""); ax.set_xlabel(""); ax.set_ylabel("")
+            ax.xaxis.set_major_formatter(fmt)
+            ax.tick_params(axis='x', which='both', length=6, labelsize=tick_size)
+
+            if c == 0:
+                ax.set_yticks([0.0, 0.1, y_max])
+                ax.yaxis.set_major_formatter(fmt)
+                ax.tick_params(axis='y', which='both', length=6, labelsize=tick_size)
+            else:
+                ax.set_yticks([])
+
+    # ----------------------------
+    # Fill figure
+    # ----------------------------
+    plot_day(left_days[0],  start_row=0,                block_col0=0, block_col1=1)
+    plot_day(left_days[1],  start_row=left_rows_top,    block_col0=0, block_col1=1)
+    plot_day(right_days[0], start_row=0,                block_col0=2, block_col1=3)
+    plot_day(right_days[1], start_row=right_rows_top,   block_col0=2, block_col1=3)
+
+    # Hide empties
+    for r in range(ROWS):
+        for c in range(COLS):
+            ax = axes[r, c]
+            if not ax.has_data():
+                ax.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.show()

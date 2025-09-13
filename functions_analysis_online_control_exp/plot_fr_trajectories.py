@@ -1,43 +1,74 @@
-import os
-import pickle
+import os, re, math, pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import re
-from scipy.signal import windows, convolve
-import math
-    
-def plot_fr_trajectories(directory_path, output_path, clip_thresh=35):
+from matplotlib import cm
+from matplotlib.patches import Rectangle
+from matplotlib.ticker import FuncFormatter
+from scipy.signal import convolve, windows
 
-    def conv_spikes(array, pos1, pos2, fs, window_duration=0.3):
-        window_samples = int(round(window_duration * fs))
-        hanning_window = windows.hann(window_samples)
-        hanning_window /= np.sum(hanning_window)
-        s1 = convolve(array[pos1, :], hanning_window, mode='same') * fs
-        s2 = convolve(array[pos2, :], hanning_window, mode='same') * fs
-        return s1, s2
+def plot_fr_trajectories_block(
+    directory_path,
+    output_path=None,
+    fsamp_spikes_key='fsamp',
+    force_fs=2048,
+    long_trial_thresh_s=19.0,
+    clip_thresh=35,
+    smooth_window_s=0.30,
+    xlim=(0, 35), ylim=(0, 35),             # <- keep nonnegative, fits 0/15/30 ticks nicely
+    tick_locs=(0, 15, 30),                  # <- ticks on both axes everywhere
+    font_family="Arial",
+    tick_size=22,
+    line_width=2.0,
+    rect_edge_lw=4
+):
+    # ---- style ----
+    plt.rcParams["font.family"]    = font_family
+    plt.rcParams["axes.labelsize"] = 0
+    plt.rcParams["axes.titlesize"] = 0
+    plt.rcParams["xtick.labelsize"] = tick_size
+    plt.rcParams["ytick.labelsize"] = tick_size
 
+    def nice_fmt(x, _):
+        return f"{int(round(x))}" if abs(x-round(x)) < 1e-9 else f"{x:.2f}".rstrip("0").rstrip(".")
+    fmt = FuncFormatter(nice_fmt)
+
+    # ---- helpers ----
     def extract_day(filename):
-        match = re.search(r"(Day\d{2})", filename)
-        return match.group(1) if match else None
+        m = re.search(r"(Day\d{2})", filename)
+        return m.group(1) if m else None
 
     def extract_trial(filename):
-        match = re.search(r'_(\d+)[^0-9]', filename)
-        return int(match.group(1)) if match else 0
+        m = re.search(r'_(\d+)[^0-9]', filename)
+        return int(m.group(1)) if m else 0
 
-    fsamp = 2048
-    pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
+    def conv_spikes(spike_mat, pos1, pos2, fs, window_s=smooth_window_s):
+        wN = max(1, int(round(window_s * fs)))
+        if wN % 2 == 0: wN += 1
+        w = windows.hann(wN); w /= np.sum(w)
+        s1 = convolve(spike_mat[pos1, :], w, mode='same') * fs
+        s2 = convolve(spike_mat[pos2, :], w, mode='same') * fs
+        return s1, s2
 
-    # Group by day, filtering broken/incomplete files
-    files_by_day = {}
-    for file in pkl_files:
+    def load_force_forceonly(d):
         try:
-            with open(os.path.join(directory_path, file), 'rb') as f:
-                data = pickle.load(f)
-            if 'MU' in data and 'Idx_MU_Pair' in data:
-                day = extract_day(file)
+            x = np.asarray(d["Force"]).squeeze()
+            if x.ndim > 1:
+                x = np.asarray(d["Force"].tolist())[0].squeeze()
+        except Exception:
+            x = np.asarray(d["Force"].tolist())[0].squeeze()
+        return np.asarray(x, float)
+
+    # ---- collect files ----
+    pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
+    files_by_day = {}
+    for fname in pkl_files:
+        try:
+            with open(os.path.join(directory_path, fname), 'rb') as f:
+                d = pickle.load(f)
+            if 'MU' in d and 'Idx_MU_Pair' in d and 'Force' in d:
+                day = extract_day(fname)
                 if day:
-                    files_by_day.setdefault(day, []).append(file)
+                    files_by_day.setdefault(day, []).append(fname)
         except Exception:
             continue
 
@@ -46,85 +77,130 @@ def plot_fr_trajectories(directory_path, output_path, clip_thresh=35):
         print("Not enough valid days with data.")
         return
 
-    # Sort trials and define early/late
-    for day in session_days:
-        files_by_day[day].sort(key=extract_trial)
+    for dkey in session_days:
+        files_by_day[dkey].sort(key=extract_trial)
 
-    early_days = session_days[:2]
-    late_days = session_days[-2:]
+    left_days  = [session_days[0], session_days[1]]
+    right_days = [session_days[-2], session_days[-1]]
 
-    early_files = [f for d in early_days for f in files_by_day[d]]
-    late_files = [f for d in late_days for f in files_by_day[d]]
-    grouped_files = early_files + late_files
+    # colors per day
+    if len(session_days) <= 20:
+        cmap = cm.get_cmap("tab20")
+        day_color = {day: cmap(i % 20) for i, day in enumerate(session_days)}
+    else:
+        day_color = {day: cm.viridis(i / max(1, len(session_days)-1)) for i, day in enumerate(session_days)}
 
-    num_files = len(grouped_files)
-    rows_needed = max(math.ceil(len(early_files) / 2), math.ceil(len(late_files) / 2))
+    # ---- layout ----
+    def rows_for_day(day):
+        return int(math.ceil(len(files_by_day[day]) / 2.0)) or 1
 
-    fig, axes = plt.subplots(rows_needed, 4, figsize=(16, rows_needed * 3))
-    axes = np.atleast_2d(axes)
+    l_top   = rows_for_day(left_days[0])
+    l_bot   = rows_for_day(left_days[1])
+    r_top   = rows_for_day(right_days[0])
+    r_bot   = rows_for_day(right_days[1])
 
-    xlim = (-2, 35)
-    ylim = (-2, 35)
+    ROWS = max(l_top + l_bot, r_top + r_bot)
+    COLS = 4
+    fig, axes = plt.subplots(ROWS, COLS, figsize=(16, ROWS * 3), squeeze=False)
 
-    color_map = {day: cm.get_cmap("tab20")(i) for i, day in enumerate(session_days)}
+    # ---- per-day plotting ----
+    def plot_day(day, start_row, col0, col1):
+        flist  = files_by_day[day]
+        rcount = rows_for_day(day)
+        dcolor = day_color.get(day, "black")
 
-    for i, file_name in enumerate(grouped_files):
-        is_early = i < len(early_files)
-        local_idx = i if is_early else i - len(early_files)
-        row_idx = local_idx // 2
-        col_offset = 0 if is_early else 2
-        col_idx = local_idx % 2 + col_offset
+        for k, fname in enumerate(flist):
+            r_local = k % rcount
+            c_local = k // rcount
+            if c_local > 1:
+                c_local = 1
+                r_local = min(r_local + rcount, rcount-1)
 
-        if row_idx >= rows_needed or col_idx >= 4:
-            continue
+            r = start_row + r_local
+            c = col0 if c_local == 0 else col1
+            if r >= ROWS: continue
 
-        ax = axes[row_idx, col_idx]
+            ax = axes[r, c]
+            with open(os.path.join(directory_path, fname), 'rb') as f:
+                d = pickle.load(f)
 
-        file_path = os.path.join(directory_path, file_name)
-        with open(file_path, 'rb') as f:
-            data = pickle.load(f)
+            # "not good" via force duration
+            force = load_force_forceonly(d)
+            duration_s = (len(force) / float(force_fs)) if force.size else 0.0
+            is_long = duration_s > long_trial_thresh_s
 
-        data_MU = np.array(data['MU'].tolist())
-        neuron_1, neuron_2 = data['Idx_MU_Pair']
-        s1, s2 = conv_spikes(data_MU, neuron_1, neuron_2, fs=data['fsamp'])
+            # spikes -> FR
+            MU = np.asarray(d['MU']).astype(float)
+            if MU.ndim == 1:
+                MU = np.asarray(d['MU'].tolist()).astype(float)
+            n1, n2 = d['Idx_MU_Pair']
+            fs_spk = d.get(fsamp_spikes_key, force_fs)
+            s1, s2 = conv_spikes(MU, n1, n2, fs=fs_spk)
+            if clip_thresh is not None:
+                s1 = np.clip(s1, 0, clip_thresh)
+                s2 = np.clip(s2, 0, clip_thresh)
 
-        s1 = np.clip(s1, 0, clip_thresh)
-        s2 = np.clip(s2, 0, clip_thresh)
+            # background rectangle; gray if not-good
+            ax.add_patch(Rectangle(
+                (xlim[0], ylim[0]), xlim[1]-xlim[0], ylim[1]-ylim[0],
+                fill=is_long, facecolor=(0.94, 0.94, 0.94) if is_long else "none",
+                ec=dcolor, lw=rect_edge_lw, zorder=-10
+            ))
 
-        ax.plot(s1, s2, color="black", linewidth=2)
+            # trajectory
+            ax.plot(s1, s2, color="black", linewidth=line_width)
 
-        day_info = extract_day(file_name)
-        day_color = color_map.get(day_info, "gray")
+            # limits
+            ax.set_xlim(xlim); ax.set_ylim(ylim)
 
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
+            # ticks on ALL axes (marks), but labels only bottom row & first col
+            ax.set_xticks(list(tick_locs))
+            ax.set_yticks(list(tick_locs))
 
-        ax.add_patch(plt.Rectangle((xlim[0], ylim[0]),xlim[1] - xlim[0],ylim[1] - ylim[0], edgecolor=day_color, facecolor='none',lw=4, zorder=-10))
+            is_bottom    = (r == ROWS - 1)
+            is_first_col = (c == 0)
 
-        ax.set_xticks([5, 15, 25, 35])
-        ax.set_yticks([5, 15, 25, 35])
-        ax.tick_params(axis='x', labelsize=25)
-        ax.tick_params(axis='y', labelsize=25)
+            # show tick marks everywhere
+            ax.tick_params(axis='x', length=6)
+            ax.tick_params(axis='y', length=6)
 
-        for spine in ax.spines.values():
-            spine.set_visible(False)
+            # x labels: only bottom row
+            if is_bottom:
+                ax.xaxis.set_major_formatter(fmt)
+                ax.tick_params(axis='x', labelsize=tick_size, labelbottom=True)
+            else:
+                # keep marks, hide numbers
+                ax.tick_params(axis='x', labelbottom=False)
 
-        if col_idx == 0 or col_idx == 2:
-            ax.set_ylabel("FR (Hz)", fontsize=25)
-        else:
-            ax.set_yticklabels([])
+            # y labels: only first column
+            if is_first_col:
+                ax.yaxis.set_major_formatter(fmt)
+                ax.tick_params(axis='y', labelsize=tick_size, labelleft=True)
+            else:
+                ax.tick_params(axis='y', labelleft=False)
 
-        if row_idx == rows_needed - 1:
-            ax.set_xlabel("FR (Hz)", fontsize=25)
+            # clean spines & no axis titles
+            for sp in ax.spines.values():
+                sp.set_visible(False)
+            ax.set_xlabel(""); ax.set_ylabel(""); ax.set_title("")
 
-        else:
-            ax.set_xticklabels([])
-       
-    # Hide any unused axes
-    total_slots = rows_needed * 4
-    for j in range(len(grouped_files), total_slots):
-        axes[j // 4, j % 4].axis('off')
+    # fill figure
+    plot_day(left_days[0], start_row=0,    col0=0, col1=1)
+    plot_day(left_days[1], start_row=l_top,col0=0, col1=1)
+    plot_day(right_days[0],start_row=0,    col0=2, col1=3)
+    plot_day(right_days[1],start_row=r_top,col0=2, col1=3)
+
+    # hide empties
+    for r in range(ROWS):
+        for c in range(COLS):
+            ax = axes[r, c]
+            if not ax.has_data():
+                ax.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    if output_path:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.show()
+
+
+
