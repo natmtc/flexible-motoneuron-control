@@ -8,7 +8,7 @@ We **optimized calcium channel deactivation thresholds** (Black box optimization
 
 
 <p align="center">
-  <img src="pictures_for_explanation/diagram.png" alt="Biophysical model of a motoneuron" width="600">
+  <img src=".pictures_for_explanation/diagram.png" alt="Biophysical model of a motoneuron" width="800">
 </p>
 
 
@@ -18,32 +18,32 @@ The model was **validated with experimental data** (129 ± 44 motoneurons per su
 
 
 <p align="center">
-  <img src="pictures_for_explanation/output_rasters.png" alt="Output_model" width="800">
+  <img src=".pictures_for_explanation/output_rasters.png" alt="Output_model">
 </p>
 
 Another PD controller was implemented to **reproduce the task described in Bräcklein et al., 2022 (eLife)**, where participants were instructed to **independently control pairs of motoneurons by altering their recruitment order**. In practice, true independent recruitment **was not possible** — instead, participants **achieved only apparent flexible behaviors by modulating derecruitment dynamics**, highlighting a fundamental physiological constraint.
 
 <p align="center">
-  <img src="pictures_for_explanation/flexibleexp.png" alt="Output_model" width="350">
+  <img src=".pictures_for_explanation/flexibleexp.png" alt="Output_model">
 </p>
+
 
 We also analyzed experimental data from Mario Bräcklein’s study (14-day dataset) to determine whether participants’ **improvements in motoneuron control** were driven by  **physiological changes or by behavioral adaptation** strategies. We used spiking GLM models to track how correlated activity within the motoneuron pool evolved with learning.
 <p align="center">
-  <img src="pictures_for_explanation/glm.png" alt="Output_model"  width="700">
+  <img src=".pictures_for_explanation/glmintro.png" alt="Output_model">
 </p>
-
-This project demonstrates that the only way humans can volitionally elicit a certain degree of flexibility **in motoneuron control through neuromodulatory input**, which alters derecruitment dynamics without violating the size principle.
+<p align="center">
+  <img src=".pictures_for_explanation/glm.png" alt="Output_model">
+</p>
+This project demonstrates that the only way humans can volitionally elicit a **certain degree of flexibility** motoneuron behaviors is through **neuromodulatory input**, which alters derecruitment dynamics **without violating the size principle**.
 
 
 ## Features
-- **Biophysical motoneuron model** 
-- **Force-tracking validation**
-- **Model optimization**
-- **Replication of spiking activity** and **derecruitment variability** 
-- **Simulations of online cursor-control experiments of motoneuron pairs** 
-- **Experimental data over days**
-- **GLM models (spike and force model) to study correlation of the motoneuron pair over days**
-
+- **Biophysical motoneuron model** based on Hodgkin-Huxley equations
+- **Two-compartment structure** (soma & dendrite)
+- **Force-tracking validation** 
+- **Simulates spiking activity** and **derecruitment variability** in motoneuron pools
+- **Motoneuron pool correlation over learning**
 
 ## Installation and dependencies for model coded in Julia
 
