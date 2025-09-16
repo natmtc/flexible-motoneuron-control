@@ -32,3 +32,7 @@ wandb/
 Plot_figures.ipynb
 
 Plot_figures.ipynb
+
+# local images (not tracked)
+docs/assets/
+pictures_for_explanation/
