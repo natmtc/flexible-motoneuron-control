@@ -4,7 +4,7 @@ We implemented a **two-compartment biophysical model** of a motoneuron, extendin
 
 Our results show that **neuromodulatory input from the brainstem** can shift motoneuron behavior away from rigid size-principle control, particularly during derecruitment, leading to decorrelation of motoneuron pairs and enabling control of additional degrees of freedom.
 
-We **optimized calcium channel deactivation thresholds** (Black box optimization), which regulate the amount of hysteresis ( prolonged firing after cessation of synaptic input).
+We **optimized calcium channel deactivation thresholds** (Black box optimization), which regulate the amount of hysteresis (prolonged firing after cessation of synaptic input).
 
 
 <p align="center">
@@ -28,7 +28,7 @@ Another PD controller was implemented to **reproduce the task described in Bräc
 </p>
 
 
-We also analyzed experimental data from Mario Bräcklein’s study (14-day dataset) to determine whether participants’ **improvements in motoneuron control** were driven by  **physiological changes or by behavioral adaptation** strategies. We used spiking GLM models to track how correlated activity within the motoneuron pool evolved with learning.
+We also analyzed experimental data from Bräcklein et al. 2022 study (14-day dataset) to determine whether participants’ **improvements in motoneuron control** were driven by  **physiological changes or by behavioral adaptation** strategies. We used spiking GLM models to track how correlated activity within the motoneuron pool evolved with learning.
 
 <p align="center">
   <img src="assets/glm.png" alt="Output_model" width="500">
