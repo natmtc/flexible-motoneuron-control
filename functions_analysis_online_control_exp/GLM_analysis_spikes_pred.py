@@ -1,110 +1,129 @@
-import os               
-import pickle          
-import numpy as np      
+import os
+import pickle
+import numpy as np
 from scipy.special import gammaln
+import re
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def load_and_preprocess(file, folder_path, bin_size_ms, sampling_freq=2048):
     """
-    Load data and preprocess it so we have the GLM format.
-    """   
+    Load one trial (pickle) and bin spikes for GLM input.
+
+    Parameters
+    ----------
+    file : str
+        Filename of the trial (e.g., 'S1_Session01_trial03.pkl').
+    folder_path : str
+        Directory containing the trial file.
+    bin_size_ms : int or float
+        Bin width in milliseconds used to aggregate spikes.
+    sampling_freq : int
+        Sampling frequency (Hz) of the raw signals in the file.
+
+    Returns
+    -------
+    binned_spikes_T : np.ndarray, shape (bins, neurons)
+        Spike counts per bin (transposed so time/bins is first dimension).
+    data : dict
+        The full dictionary loaded from the pickle file (unaltered).
+    mnpair : list
+        Value of 'Idx_MU_Pair' from the file (converted to list).
+
+    """
     file_path = os.path.join(folder_path, file)
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
-    
-    data_MU = np.array(data['MU'].tolist())  # neurons x samples
-    
-    bin_size_samples = int(bin_size_ms * sampling_freq / 1000)    
-    binned_spikes = np.add.reduceat(data_MU, np.arange(0, data_MU.shape[1], bin_size_samples), axis=1)
+
+    data_MU = np.array(data['MU'].tolist())  # (neurons, samples)
+
+    bin_size_samples = int(bin_size_ms * sampling_freq / 1000)
+    binned_spikes = np.add.reduceat(
+        data_MU,
+        np.arange(0, data_MU.shape[1], bin_size_samples),
+        axis=1
+    )
+
     mnpair = data['Idx_MU_Pair'].tolist()
-    
-    return binned_spikes.T, data, mnpair
-
-
-def create_glm_data_with_history(spike_data, history_bins, target_idx):
-    """
-    Create X (predictors) and Y (target) for GLM using past (history) population activity, excluding the target neuron from the predictors.
-    """    
-    num_timebins, num_neurons = spike_data.shape
-    
-    # Identify neurons that spike more than 10 times
-    active_neurons = np.where(spike_data.sum(axis=0) > 10)[0]
-    
-    if target_idx not in active_neurons:
-        return None, None  # If the target neuron is inactive, return None to skip trial
-    
-    X_list, Y_list = [], []
-    
-    for t in range(history_bins, num_timebins):
-        # Exclude neurons that never spike + target neuron itself from predictors
-        X_t = np.hstack([
-            spike_data[t - h, np.logical_and(
-                np.arange(num_neurons) != target_idx,  
-                np.isin(np.arange(num_neurons), active_neurons)
-            )]
-            for h in range(1, history_bins + 1)
-        ])
-        Y_t = spike_data[t, target_idx]  
-        X_list.append(X_t)
-        Y_list.append(Y_t)
-    
-    return np.array(X_list), np.array(Y_list)
+    return binned_spikes.T, data, mnpair  # (bins, neurons), dict, list
 
 
 def create_glm_data(spike_data, target_idx):
     """
-    Create X (predictors) and Y (target) for GLM using only instantaneous (same-bin) population activity, excluding the target neuron from the predictors.
+    Build GLM design for spike->spike (instantaneous population; no history).
+
+    Parameters
+    ----------
+    spike_data : np.ndarray, shape (bins, neurons)
+        Binned spike counts for all neurons (time along rows).
+    target_idx : int
+        Index of the target neuron to predict.
+
+    Returns
+    -------
+    X : np.ndarray or None, shape (bins, predictors)
+        Predictor matrix built from all *other* active neurons (excludes target).
+    Y : np.ndarray or None, shape (bins,)
+        Target spike counts for the selected neuron.
+
+    Selection rules
+    ---------------
+    - "Active" neurons are those with >10 spikes across all bins.
+    - If the target is not active, returns (None, None).
+    - If the target's total spikes < 20, returns (None, None).
+
     """
-    
     num_timebins, num_neurons = spike_data.shape
 
-    # Identify neurons that spike more than 10 times
+    # identify active neurons (>10 spikes total)
     active_neurons = np.where(spike_data.sum(axis=0) > 10)[0]
-    
     if target_idx not in active_neurons:
-        return None, None  # Skip if target neuron is inactive
+        return None, None
 
-    # Mask to exclude target neuron and inactive ones
-    mask = np.logical_and(np.arange(num_neurons) != target_idx,np.isin(np.arange(num_neurons), active_neurons))
-    # Build X and Y from same time bins
+    # exclude target + inactive neurons from predictors
+    mask = np.logical_and(
+        np.arange(num_neurons) != target_idx,
+        np.isin(np.arange(num_neurons), active_neurons)
+    )
+
     X = spike_data[:, mask]
     Y = spike_data[:, target_idx]
 
-    if np.sum(Y) < 20:
-        return None, None
 
     return X, Y
 
-def compute_pR2_mcfadden(model, X, Y):
-    """Compute McFadden's pseudo-R² with improved numerical stability."""
-    y_pred = model.predict(X)
-
-    # Prevent log(0) errors by ensuring positive values
-    y_pred = np.clip(y_pred, 1e-6, None)  
-    Y = np.clip(Y, 1e-6, None)  
-
-    # when all spikes are 0
-    if np.all(Y == 0) or np.all(y_pred == 0):
-        return np.nan  # Skip computation if prediction is possible
-    
-    deviance_model = 2 * np.sum(Y * np.log(Y / y_pred) - (Y - y_pred))  # how far tge model is from a perfect prediction
-    deviance_null = 2 * np.sum(Y * np.log(Y / np.mean(Y)) - (Y - np.mean(Y)))
-
-    # Handle division by zero
-    if deviance_null == 0 or np.isnan(deviance_null):
-        return np.nan  # Skip invalid computations
-
-    return 1 - (deviance_model / deviance_null)
-
-
 
 def compute_pR2(y_true, y_pred, eps=1e-12):
-    """Compute pseudo-R² as Perich et al. 2018"""
-    
+    """
+    Poisson deviance-based pseudo-R² (Perich et al.-style).
+
+    Parameters
+    ----------
+    y_true : array-like
+        Observed spike counts per bin.
+    y_pred : array-like
+        Predicted mean counts per bin (non-negative).
+    eps : float
+        Small constant to avoid log(0).
+
+    Returns
+    -------
+    pR2 : float
+        1 - (Deviance_model / Deviance_null). Higher is better.
+        NaN if denominator is zero or not finite.
+
+    Notes
+    -----
+    - Null model predicts a constant equal to the mean of `y_true`.
+    - Uses the saturated model as reference for the deviance computation.
+    """
     y = np.asarray(y_true, dtype=float)
     lam = np.clip(np.asarray(y_pred, dtype=float), eps, None)
+
     def logL(y, lam):
         return np.sum(y * np.log(lam) - lam - gammaln(y + 1))
+
     nz = y > 0
     ll_sat  = np.sum(y[nz] * np.log(y[nz])) - np.sum(y) - np.sum(gammaln(y + 1))
     ll_model = logL(y, lam)
@@ -113,3 +132,70 @@ def compute_pR2(y_true, y_pred, eps=1e-12):
     if denom == 0 or not np.isfinite(denom):
         return np.nan
     return 1.0 - (ll_sat - ll_model) / denom
+
+
+def plot_pr2_violin(session_results,
+                    title="Decoding Accuracy (pR²) by Session",
+                    out_path=None,
+                    palette_name="plasma",
+                    point_jitter=0.2,
+                    point_alpha=0.6,
+                    ylim=(-1, 1.1),
+                    figsize=(12, 6),
+                    font_family="Arial"):
+    """
+    Plot per-session pR² distributions as violins with overlaid dots that are the individual neuron pR² values)
+    """
+    if not session_results:
+        print("plot_pr2_violin: nothing to plot (empty session_results).")
+        return None, None
+
+    plt.figure(figsize=figsize)
+    plt.rcParams.update({'font.family': font_family})
+
+    # flatten data + simplify labels (keep numeric id if present)
+    all_pR2s, all_labels, simplified = [], [], {}
+    for s in session_results.keys():
+        m = re.search(r'(\d+)', s)
+        simplified[s] = str(int(m.group(1))) if m else s
+
+    for s, vals in session_results.items():
+        all_pR2s.extend(vals)
+        all_labels.extend([simplified[s]] * len(vals))
+
+    # ensure numeric order for sessions like "01,02,..."
+    unique_sessions = sorted(set(all_labels),
+                             key=lambda x: int(x) if x.isdigit() else x)
+
+    # build palette
+    import matplotlib as mpl
+    cmap = mpl.cm.get_cmap(palette_name)
+    N = max(len(unique_sessions) - 1, 1)
+    colors = [cmap(i / N) for i in range(len(unique_sessions))]
+    palette_dict = dict(zip(unique_sessions, colors))
+
+    # plot
+    sns.violinplot(x=all_labels, y=all_pR2s, order=unique_sessions,
+                   inner='box', linewidth=1.2, palette=palette_dict, cut=0, zorder=0)
+    sns.stripplot(x=all_labels, y=all_pR2s, order=unique_sessions,
+                  color='k', size=3, jitter=point_jitter, alpha=point_alpha, zorder=1)
+
+    ax = plt.gca()
+    for sp in ax.spines.values():
+        sp.set_linewidth(1.4)
+    plt.tick_params(width=1.4, length=6, labelsize=25)
+    plt.xlabel("Session", fontsize=25)
+    plt.ylabel("Decoding Accuracy (pR²)", fontsize=25)
+    if ylim is not None:
+        plt.ylim(ylim)
+    sns.despine(top=True, right=True)
+    if title:
+        plt.title(title, fontsize=18)
+    plt.tight_layout()
+
+    if out_path is not None:
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        plt.savefig(out_path, dpi=300, bbox_inches='tight')
+
+    plt.show()
+    return plt.gcf(), ax

@@ -33,7 +33,7 @@ We also analyzed experimental data from Mario Bräcklein’s study (14-day datas
 <p align="center">
   <img src="pictures_for_explanation/glm.png" alt="Output_model" width="500">
 </p>
-This project demonstrates that the only way humans can volitionally elicit a **certain degree of flexibility** motoneuron behaviors is through **neuromodulatory input**, which alters derecruitment dynamics **without violating the size principle**.
+This project demonstrates that the only way humans can volitionally elicit a certain degree of flexibility in motoneuron control is through neuromodulatory input, which alters derecruitment dynamics without violating the size principle.
 
 
 ## Features
