@@ -1,4 +1,15 @@
+"""
+    conv_spikes_rates(array1, array2)
 
+Smooths the first-row spike trains from `array1` and `array2` using a 400 ms Hanning window
+(at 20 kHz sampling rate) and returns firing-rate estimates.
+
+# Inputs
+- `array1`, `array2`: arrays with first-row spike trains (binary, sampled at 20 kHz).
+
+# Outputs
+- `(smoothed_spike_array1, smoothed_spike_array2)`: smoothed firing-rate signals.
+"""
 function conv_spikes_rates(array1,array2)
     window_samples = round(Int, 400 * 10^-3 * 20000) ; # 400 ms * 20 kHz  
     hanning_window = DSP.Windows.hanning(window_samples);
@@ -13,6 +24,5 @@ function conv_spikes_rates(array1,array2)
     smoothed_spike_array2 = smoothed_spike_array2[1:len];
     print("")
 
-return smoothed_spike_array1, smoothed_spike_array2
+    return smoothed_spike_array1, smoothed_spike_array2
 end
-   

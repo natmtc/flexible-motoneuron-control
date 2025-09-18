@@ -1,5 +1,3 @@
-using Parameters
-
 """
 ODE_motoneuron. Computation of the soma and dendrite membrane potentials using the previous calculated stated variables, etc.
 """
@@ -147,7 +145,7 @@ end
 
 
 """
-spikes_from_aps returns spike is the condition for firing an AP are met
+spikes_from_aps returns spike is the condition for firing an action potential are met
 """
 function spikes_from_aps(voltage_time_series, i, MNs)
 spikes = zeros(Int64, length(voltage_time_series))

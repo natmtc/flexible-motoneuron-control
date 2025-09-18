@@ -1,5 +1,7 @@
-using CairoMakie
 
+"""
+    plot_spike_raster(spike_array; highlight_neurons=Int[])
+"""
 function plot_spike_raster(spike_array::Array{Float64,2}; highlight_neurons=Int[])
     n_neurons, n_times = size(spike_array)
     CairoMakie.activate!()

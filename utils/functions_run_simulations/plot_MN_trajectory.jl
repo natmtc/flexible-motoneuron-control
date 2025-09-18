@@ -1,6 +1,10 @@
-using Plots
-using ColorSchemes
+"""
+    plot_MN_trajectory(spike_array, idx1, idx2; v=100)
 
+Compute and plot a 2D firing-rate trajectory between two motoneurons by smoothing their spike trains,
+block-averaging over windows of size `v`, and drawing time-colored line segments.
+
+"""
 function plot_MN_trajectory(spike_array::Matrix{Float64}, idx1::Int, idx2::Int; v::Int = 100) #v is window size to avg
 
 

@@ -1,3 +1,27 @@
+"""
+    ODE_motoneuron(t, vd, vs, gc, gld, gls, gCa, Cd, Cs, αp, βp, VthCa, gNa,
+                   αm, βm, Vth, gKf, gKs, αh, βh, αn, βn, αq, βq, γh, IF,
+                   m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1,
+                   exc_input, inh_input, flag, last_spike)
+
+Two-compartment motoneuron ODE step: updates gating variables and spike logic (somatic and Ca/dendritic),
+applies synaptic excitation/inhibition, and returns voltage derivatives plus updated states/flags.
+
+# Inputs
+- `t`: time; `vd`, `vs`: dendritic/somatic voltages.
+- Passive/axial: `gc`, `gld`, `gls`, `Cd`, `Cs`.
+- Channels/thresholds: `gCa`, `gNa`, `gKf`, `gKs`, `γh`, `Vth`, `VthCa`.
+- Kinetics: `αm, βm, αh, βh, αn, βn, αq, βq, αp, βp`.
+- Inhibition scaling: `IF`.
+- States: `m,h,n,q,p` and previous `m0,h0,n0,q0,p0`.
+- Spike timing/flags: `t0, t1, SPIKE0, SPIKE1`.
+- Inputs/flags: `exc_input`, `inh_input`, `flag`, `last_spike`.
+
+# Outputs
+- `new_vd`, `new_vs`: dVd/dt, dVs/dt.
+- Updated states/flags: `m, h, n, q, p, m0, h0, n0, q0, p0, t0, t1, SPIKE0, SPIKE1`.
+"""
+
 function ODE_motoneuron(t::Float64, vd::Float64, vs::Float64,
     gc::Float64, gld::Float64, gls::Float64, gCa::Float64, Cd::Float64,
     Cs::Float64,  αp::Float64,  βp::Float64, VthCa::Float64, gNa::Float64,
