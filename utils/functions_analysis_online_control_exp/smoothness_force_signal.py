@@ -84,7 +84,7 @@ def compute_signal_smoothness(directory_path, fsamp):
         sem = std_val / np.sqrt(n)
 
 
-    ax.set_ylabel("Learning metric", fontsize=18, labelpad=10)
+    ax.set_ylabel("Jitter", fontsize=18, labelpad=10)
     ax.set_xlabel("")
     ax.set_xticklabels(["First sessions", "Last sessions"], fontsize=16)
     sns.despine(trim=True)
