@@ -31,9 +31,9 @@ wandb/
 
 Plot_figures.ipynb
 
-frs.ipynb
+Notebooks/frs.ipynb
 
-Loop_run_sims.ipynb
+Notebooks/Loop_run_sims.ipynb
 
 # local images (not tracked)
 docs/assets/
