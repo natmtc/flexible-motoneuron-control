@@ -1,14 +1,14 @@
-# Neuromodulation explain deviations from classic rigid control
+# Limits of flexible motoneuron control in unifunctional muscles
 
-We implemented a **two-compartment biophysical model** of a motoneuron, extending classical Hodgkin–Huxley equations to study the limits of flexible motoneuron control. The model **reproduces the high variability observed in vivo** and mimics **2D online cursor-control experiments**, where participants learned to **decorrelate motoneuron pairs with similar recruitment thresholds and intrinsic properties**.
+We implemented a **two-compartment biophysical model** of a motoneuron, extending classical Hodgkin–Huxley equations to study the limits of flexible motoneuron control. The model **reproduces the high variability observed in vivo** and mimics **2D online cursor-control experiments**, where participants learned to **decorrelate motoneuron pairs with similar recruitment thresholds and intrinsic properties** (Bräcklein et al. 2022).
 
-Our results show that **neuromodulatory input from the brainstem** can shift motoneuron behavior away from rigid size-principle control, particularly during derecruitment, leading to decorrelation of motoneuron pairs and enabling control of additional degrees of freedom.
+Our results show that heterogeneous **neuromodulatory input from the brainstem**, together with uneven inhibition, can shift motoneuron behavior away from rigid correlated motoneuron control, particularly during derecruitment, leading to decorrelation of motoneuron pairs and enabling control of additional degrees of freedom.
 
 We **optimized calcium channel deactivation thresholds** (Black box optimization), which regulate the amount of hysteresis (prolonged firing after cessation of synaptic input).
 
 
 <p align="center">
-  <img src="assets/diagram.png" alt="Biophysical model of a motoneuron" width="500">
+  <img src="assets/diagram.jpg" alt="Biophysical model of a motoneuron and experimental data to validate it" width="500">
 </p>
 
 
