@@ -14,7 +14,7 @@ We **optimized calcium channel deactivation thresholds** (Black box optimization
 
 To verify the model’s ability to replicate **force-tracking tasks** (trapezoidal, sinusoidal, chirp), we implemented a **Proportional-Derivative (PD) controller** that minimizes the error between target and actual force output.
 
-The model was **validated with experimental data** (129 ± 44 motoneurons per subject) from the **Tibialis Anterior** muscle of eight participants (Avrillon et al., 2024, eLife). Our simulations **successfully reproduce the spiking activity of a motoneuron pool**, capturing both the collective force dynamics and the variability observed experimentally.
+The model was **validated with experimental data** (129 ± 44 motoneurons per subject) from the **Tibialis Anterior** muscle of eight participants (Avrillon et al., 2024, eLife). Our simulations **successfully reproduce the spiking activity of a motoneuron pool**,  capturing both the collective force dynamics and the variability observed experimentally.
 
 
 <p align="center">
