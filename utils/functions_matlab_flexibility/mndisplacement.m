@@ -1,4 +1,4 @@
-function [dMU, tau, responsibleUnits]  = mudisplacement(psth, Fs, varargin)
+function [dMU, tau, responsibleUnits]  = mndisplacement(psth, Fs, varargin)
 P = inputParser;
 addRequired(P, 'psth', @iscell)
 addRequired(P, 'Fs', @isnumeric)

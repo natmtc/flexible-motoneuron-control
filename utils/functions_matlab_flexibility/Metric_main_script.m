@@ -24,7 +24,7 @@
     different_biophysical_properties = zeros(1,size(ncomb,1));
 
     for i = 1:size(ncomb,1)
-        displacement(i) = max(mudisplacement({smoothedDR([ncomb(i,:)],:)}, 50));
+        displacement(i) = max(mndisplacement({smoothedDR([ncomb(i,:)],:)}, 50));
         different_biophysical_properties(i)=(VthCa_newTA(ncomb(i,1))- VthCa_newTA(ncomb(i,2)));
     end
 
