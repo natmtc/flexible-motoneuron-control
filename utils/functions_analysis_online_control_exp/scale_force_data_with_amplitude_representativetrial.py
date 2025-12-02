@@ -1,11 +1,11 @@
 import os
 import re
 import pickle
-
 import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+
 def extract_day(filename):
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None
