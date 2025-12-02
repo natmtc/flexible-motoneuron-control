@@ -14,7 +14,7 @@ The model was validated using experimental data (129 ± 44 motoneurons per subje
 
 We next asked whether the model could reproduce the flexible behaviors reported in Bräcklein et al. (2022). A second PD controller drove the model to produce flexible behaviors (Figure 3a). Consistent with human behavior, the model showed that true independent recruitment is not achievable. Instead, apparent flexibility arises from modulating derecruitment dynamics, a strategy that respects the size principle but can momentarily create the illusion of independent control (Figure 3b).
 
-<p align="center"> <img src="assets/flexible_exp.png" width="300"> </p>
+<p align="center"> <img src="assets/flexible_exp.png" width="600"> </p>
 
 Finally, we analyzed the 14-day dataset from Bräcklein et al. (2022) (Figure 4a) to determine whether improvements in motoneuron control reflect physiological changes or behavioral adaptation. Using spiking Poisson GLM models, we tracked how pairwise motoneuron correlations evolved across learning (Figure 4b).
 
