@@ -2,11 +2,11 @@
 
 We implemented a two-compartment biophysical model of a motoneuron (Figure 1a), extending classical Hodgkin–Huxley equations to investigate the limits of flexible motoneuron control. The model reproduces the high variability observed in vivo (Figure 1b; Avrillon et al., 2024, eLife) and mimics 2D online cursor-control experiments in which participants learned to decorrelate motoneuron pairs (Bräcklein et al., 2022).
 
-<p align="center"> <img src="assets/diagram.jpg" alt="Biophysical model of a motoneuron and experimental data to validate it" width="600"> </p>
+<p align="center"> <img src="assets/diagram.jpg" width="500"> </p>
 
 Our results show that heterogeneous neuromodulatory input from the brainstem, together with uneven inhibition, can shift motoneuron behavior away from rigid correlated firing—particularly during derecruitment. These mechanisms produce decorrelation between motoneuron pairs and allow the emergence of additional controllable dimensions. Using black-box optimization, we tuned calcium channel deactivation thresholds, which regulate dendritic neuromodulatory hysteresis, achieving accurate reproduction of experimental firing-rate distributions across the motoneuron pool (Figure 2).
 
-<p align="center"> <img src="assets/output_rasters.png" alt="Output_model" width="500"> </p>
+<p align="center"> <img src="assets/firings.png" width="350"> </p>
 
 To evaluate the model’s performance in force-tracking tasks (trapezoidal, sinusoidal, chirp), we implemented a Proportional–Derivative (PD) controller that minimizes the error between target and generated force.
 
@@ -14,11 +14,11 @@ The model was validated using experimental data (129 ± 44 motoneurons per subje
 
 We next asked whether the model could reproduce the flexible behaviors reported in Bräcklein et al. (2022). A second PD controller drove the model to produce flexible behaviors (Figure 3a). Consistent with human behavior, the model showed that true independent recruitment is not achievable. Instead, apparent flexibility arises from modulating derecruitment dynamics, a strategy that respects the size principle but can momentarily create the illusion of independent control (Figure 3b).
 
-<p align="center"> <img src="assets/flexibleexp.png" alt="Output_model" width="300"> </p>
+<p align="center"> <img src="assets/flexibleexp.png" width="300"> </p>
 
 Finally, we analyzed the 14-day dataset from Bräcklein et al. (2022) (Figure 4a) to determine whether improvements in motoneuron control reflect physiological changes or behavioral adaptation. Using spiking Poisson GLM models, we tracked how pairwise motoneuron correlations evolved across learning (Figure 4b).
 
-<p align="center"> <img src="assets/glm.png" alt="Output_model" width="500"> </p>
+<p align="center"> <img src="assets/glm.png" width="700"> </p>
 
 Overall, our results show that a limited degree of flexible motoneuron control can be achieved without violating the size principle. This flexibility arises not from independent volitional access to individual motoneurons, but from neuromodulatory modulation of dendritic neuromodulation, which reshapes derecruitment thresholds and temporarily alters the relative activity of similarly tuned motoneurons. Neuromodulation therefore defines the upper bound of controllability in unifunctional muscles: it enables transient decorrelation, but does not permit arbitrary independent control.
 
