@@ -101,9 +101,7 @@ def load_jld2_h5(path: str, key: str = 'spike_array') -> np.ndarray:
     return MU
 
 
-def bin_spikes_samples_by_neurons(MU: np.ndarray,
-                                  bin_size_ms: int = 100,
-                                  fsamp: int = 20000) -> np.ndarray | None:
+def bin_spikes_samples_by_neurons(MU: np.ndarray, bin_size_ms: int = 100, fsamp: int = 20000) -> np.ndarray | None:
     """
     Bin spikes from (samples x neurons) into (neurons x bins) by summing within each bin.
 

@@ -3,9 +3,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import chisquare, poisson
 
-# ---------- I/O ----------
 def load_mu_from_pickle(pkl_path):
+    """
+Load motoneuron spike matrix (MU) from a pickle file.
+
+Args:
+    pkl_path (str): Path to a pickle file containing a dict with key 'MU'.
+
+Process:
+    - Opens and loads the pickle dictionary.
+    - Converts the stored MU object to a NumPy array.
+    - Verifies that MU has shape (neurons, samples).
+
+Returns:
+    np.ndarray: MU array of shape (neurons, samples).
+
+Raises:
+    ValueError: If MU is not a 2D array.
+"""
+
     """Return MU as (neurons x samples) from your pickle."""
+    
+    
     with open(pkl_path, 'rb') as f:
         d = pickle.load(f)
     MU = np.array(d['MU'].tolist())   # (neurons x samples)
@@ -13,16 +32,49 @@ def load_mu_from_pickle(pkl_path):
         raise ValueError(f"Expected 2D MU, got {MU.shape}")
     return MU
 
+
+
 def get_first_file_from_session_map(session_files):
-    """session_files is like session_files1; returns (first_session_name, first_file_path)."""
+    """
+Retrieve the first file entry from a session-to-files mapping.
+
+Args:
+    session_files (dict): Mapping {session_name: [file_paths...]}
+
+Returns:
+    tuple: (first_session_name, first_file_path)
+"""
+
     first_session, first_files = list(session_files.items())[0]
     return first_session, first_files[0]
 
-# ---------- Binning ----------
+
+
+
 def bin_spikes(MU, fsamp, bin_ms):
     """
-    MU: (neurons x samples) -> (neurons x bins) spike counts.
-    """
+Bin spike trains into fixed-duration time bins.
+
+Args:
+    MU (np.ndarray): Binary spike matrix of shape (neurons, samples).
+    fsamp (float): Sampling frequency in Hz.
+    bin_ms (float): Bin width in milliseconds.
+
+Process:
+    - Converts bin width to samples.
+    - Validates bin size.
+    - Truncates MU to an integer number of bins.
+    - Sums spikes within each bin.
+
+Returns:
+    np.ndarray or None:
+        Binned spike counts of shape (neurons, n_bins),
+        or None if the data are too short for a single bin.
+
+Raises:
+    ValueError: If bin_len <= 0.
+"""
+
     bin_len = int(round((bin_ms/1000.0) * fsamp))
     if bin_len <= 0:
         raise ValueError("bin_len <= 0; check fsamp/bin_ms")
@@ -32,18 +84,48 @@ def bin_spikes(MU, fsamp, bin_ms):
     MUc = MU[:, :n_bins*bin_len]
     return MUc.reshape(MU.shape[0], n_bins, bin_len).sum(axis=2)
 
-# ---------- Stats ----------
+
+
 def fano_factor(counts):
+    """
+Compute the Fano factor of a count distribution.
+
+Args:
+    counts (array-like): Sequence of spike counts or event counts.
+
+Process:
+    - Converts to a NumPy array.
+    - Computes mean (λ) and sample variance.
+    - Returns variance / mean, or NaN if mean is zero.
+
+Returns:
+    float: Fano factor (variance-to-mean ratio).
+"""
+
     counts = np.asarray(counts)
     lam = counts.mean()
     return np.nan if lam == 0 else counts.var(ddof=1) / lam
 
+
+
 def chisq_poisson_gof(counts, min_exp=5, tail_sd=10):
     """
-    Chi-square GOF for Poisson with λ = mean(counts).
-    Pools right tail so each expected bin >= min_exp.
-    Returns: chi2, p, info dict with lambda_hat/obs/exp.
-    """
+Perform a chi-square goodness-of-fit test for whether count data follow
+a Poisson distribution with λ estimated as the sample mean.
+
+The function:
+- Estimates λ = mean(counts).
+- Builds observed and expected frequency tables up to either max(count)
+  or lam + tail_sd * sqrt(lam).
+- Pools right-tail bins so that all expected counts ≥ min_exp.
+- Computes the chi-square statistic with 1 degree of freedom (λ estimated).
+
+Returns:
+    chi2 (float): Chi-square test statistic.
+    p (float): p-value for Poisson GOF.
+    details (dict): Dictionary with λ̂, pooled observed counts, and expected counts.
+"""
+    
     x = np.asarray(counts).ravel().astype(int)
     if x.size == 0:
         raise ValueError("counts is empty")
@@ -64,9 +146,28 @@ def chisq_poisson_gof(counts, min_exp=5, tail_sd=10):
     chi2, p = chisquare(f_obs=obs, f_exp=exp, ddof=1)  # ddof=1 (λ estimated)
     return chi2, p, {"lambda_hat": lam, "obs": obs, "exp": exp}
 
-# ---------- Plotting ----------
+
+
+
 def plot_hist_vs_poisson(spike_counts, bin_ms, session_label="Session", neuron_idx=0):
-    """Observed histogram vs Poisson(μ) overlay."""
+    """
+Plot observed spike-count histogram with a Poisson(μ) overlay.
+
+Args:
+    spike_counts (array-like): Spike counts per bin for a single neuron.
+    bin_ms (float): Bin width in milliseconds (for labeling only).
+    session_label (str): Session name to display in the plot title.
+    neuron_idx (int): Neuron index to display in the plot title.
+
+Process:
+    - Computes observed histogram of spike counts.
+    - Fits μ = mean(spike_counts) and computes expected Poisson frequencies.
+    - Plots observed vs. expected counts side-by-side.
+
+Returns:
+    float: Estimated Poisson mean μ.
+"""
+
     spike_counts = np.asarray(spike_counts).astype(int)
     mu = spike_counts.mean()
     kmax = int(spike_counts.max())
@@ -82,12 +183,41 @@ def plot_hist_vs_poisson(spike_counts, bin_ms, session_label="Session", neuron_i
     plt.legend(); plt.tight_layout(); plt.show()
     return mu
 
-# ---------- Single-neuron evaluation ----------
+
+
+
 def evaluate_one_neuron(MU, fsamp, bin_ms, neuron_idx=0, plot=True, session_label="Session"):
     """
-    Bin MU, pick one neuron, compute Fano + χ² GOF, optionally plot histogram overlay.
-    Returns dict with stats.
-    """
+Evaluate spiking variability and Poisson goodness-of-fit for a single neuron.
+
+Args:
+    MU (np.ndarray): Spike matrix of shape (neurons, samples).
+    fsamp (float): Sampling frequency in Hz.
+    bin_ms (float): Bin width in milliseconds.
+    neuron_idx (int): Index of the neuron to analyze.
+    plot (bool): If True, plot histogram with Poisson overlay.
+    session_label (str): Label used in the plot title.
+
+Process:
+    - Bins the spike trains.
+    - Extracts spike counts for the selected neuron.
+    - Computes Fano factor.
+    - Performs χ² goodness-of-fit test for Poisson(λ̂).
+    - Optionally plots observed vs Poisson histogram.
+
+Returns:
+    dict: {
+        "fano": Fano factor,
+        "chi2": chi-square statistic,
+        "p": p-value,
+        "lambda_hat": estimated Poisson mean,
+        "counts": spike-count vector
+    }
+
+Raises:
+    ValueError: If MU is too short to form at least one bin.
+"""
+
     counts_mat = bin_spikes(MU, fsamp, bin_ms)
     if counts_mat is None:
         raise ValueError("Not enough samples to form even one bin.")
@@ -99,15 +229,36 @@ def evaluate_one_neuron(MU, fsamp, bin_ms, neuron_idx=0, plot=True, session_labe
         mu = plot_hist_vs_poisson(spike_counts, bin_ms, session_label, neuron_idx)
     return {"fano": ff, "chi2": chi2, "p": p, "lambda_hat": info["lambda_hat"], "counts": spike_counts}
 
-# ---------- Sweep across bin sizes (summary over neurons) ----------
+
+
+
 def summarize_poisson_by_bins(MU, fsamp, bin_list_ms):
     """
-    For each bin size, compute across neurons:
-      - median Fano
-      - % neurons with χ² p>0.05 (fail to reject Poisson)
-      - median λ (mean count per bin)
-    Returns list of tuples: (bin_ms, median_fano, frac_pass, median_lambda)
-    """
+Summarize Poisson statistics across neurons for multiple bin widths.
+
+For each bin size in `bin_list_ms`, the function:
+    - Bins MU spike trains.
+    - Computes per-neuron Fano factor.
+    - Performs χ² Poisson GOF test.
+    - Extracts λ̂ (mean spike count per bin).
+    - Aggregates across neurons:
+        * median Fano factor
+        * fraction of neurons with p > 0.05 (fail to reject Poisson)
+        * median λ̂
+
+Args:
+    MU (np.ndarray): Spike matrix of shape (neurons, samples).
+    fsamp (float): Sampling frequency in Hz.
+    bin_list_ms (list): List of bin widths in milliseconds.
+
+Returns:
+    list of tuples:
+        (bin_ms, median_fano, frac_pass, median_lambda)
+
+Notes:
+    Skips bin sizes where not enough data exist to form bins.
+"""
+
     summary = []
     for bin_ms in bin_list_ms:
         counts_mat = bin_spikes(MU, fsamp, bin_ms)
@@ -132,6 +283,9 @@ def summarize_poisson_by_bins(MU, fsamp, bin_list_ms):
         med_lambda = np.nanmedian(lambdas)
         summary.append((bin_ms, med_fano, frac_pass, med_lambda))
     return summary
+
+
+
 
 def print_poisson_summary(summary):
     print("\n=== Poisson-ness by bin size ===")

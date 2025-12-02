@@ -7,13 +7,38 @@ import pandas as pd
 import re
 from scipy.stats import mannwhitneyu
 
+
 def extract_day(filename):
+    """
+Extract the day label (e.g., 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    str or None: The matched day string, or None if no day pattern is found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None  
 
+
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no valid pattern is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)  
     return int(match.group(1)) if match else 0  
+
 
 def plot_avg_trial_durations(directory_paths, fsamp=2048, save_path=None):
     """

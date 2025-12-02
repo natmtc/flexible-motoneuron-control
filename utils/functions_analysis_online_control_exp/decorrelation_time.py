@@ -7,15 +7,66 @@ import re
 import pickle
 
 def extract_day(filename):
+    """
+Extract the full day label (e.g., 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    str or None: The matched day string (e.g., 'Day03'), or None if not found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None
 
+
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no match is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)
     return int(match.group(1)) if match else 0
 
+
+
+
 def plot_prolonged_firing_duration(directory_path, fsamp=2048,scatter_save_path=None, trend_save_path=None):
-    
+    """
+Plot prolonged firing duration across sessions and summarize per-day trends.
+
+This function computes how long the higher-threshold motoneuron in each MU pair
+continues firing after the lower-threshold one stops, and visualizes this both
+per trial and per session day.
+
+Args:
+    directory_path (str): Path to folder containing .pkl trial files.
+    fsamp (float): Sampling frequency of the MU data in Hz.
+    scatter_save_path (str or None): If provided, path to save the scatter plot.
+    trend_save_path (str or None): If provided, path to save the bar+trend plot.
+
+Process:
+    - Loads all .pkl files and groups/sorts them by session day and trial.
+    - For each file, extracts the MU pair and computes:
+        prolonged_duration = (last spike of larger MU - last spike of smaller MU) / fsamp
+    - Builds a scatter plot of duration vs file index, colored by day.
+    - Computes average prolonged duration per day and applies a Gaussian
+      smoothing to visualize a trend.
+    - Plots a bar chart of per-day averages with an overlaid smoothed trend line.
+
+Returns:
+    None
+"""
+
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
 
     files_by_day = {}
@@ -97,17 +148,31 @@ def plot_prolonged_firing_duration(directory_path, fsamp=2048,scatter_save_path=
     if trend_save_path:
         plt.savefig(trend_save_path, dpi=300, bbox_inches='tight')
     plt.show()
+    
+    
+    
 
 def plot_groupwise_prolonged_firing(session_files_dict, base_data_dir, fsamp=2048,save_path=None):
     """
-    Plot average prolongated firing durations with smoothed trend across multiple subjects.
+Plot average prolonged firing duration across days for multiple subjects.
 
-    Parameters:
-    - session_files_dict: dict of dicts, e.g. {'S1': {'Day01': [...], 'Day02': [...]}, ...}
-    - base_data_dir: str, path to the directory containing subject folders
-    - fsamp: int, sampling frequency
-    - save_path: str or None, if given, figure is saved there
-    """
+Args:
+    session_files_dict (dict): Nested dict mapping subjects to their day/files:
+        {'S1': {'Day01': [...], 'Day02': [...]}, ...}
+    base_data_dir (str): Path to the directory containing subject subfolders.
+    fsamp (int): Sampling frequency of the MU data in Hz.
+    save_path (str or None): If provided, save the figure to this path.
+
+Process:
+    - For each subject and day, loads MU data and the MU pair indices.
+    - Computes prolonged firing duration:
+        (last spike of larger MU – last spike of smaller MU) / fsamp.
+    - Averages durations per day for each subject.
+    - Plots bar charts of daily averages with a Gaussian-smoothed trend line.
+
+Returns:
+    None
+"""
     fig, axes = plt.subplots(2, 3, figsize=(22, 12))
     axes = axes.flatten()
 

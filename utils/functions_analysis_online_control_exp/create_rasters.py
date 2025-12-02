@@ -8,20 +8,61 @@ import matplotlib.pyplot as plt
 
 
 def extract_day(filename):
+    """
+Extract the numeric day index from a filename (e.g., 'Day03' → 3).
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    int or None: The integer day number, or None if no day pattern is found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
-    return int(match.group(1)[3:]) if match else None  # Extract numeric part of "DayXX"
+    return int(match.group(1)[3:]) if match else None 
+
+
+
 
 def extract_trial(filename):
-    match = re.search(r'_(\d+)[^0-9]', filename)  # Extracts numeric trial number before a non-digit
-    return int(match.group(1)) if match else 0  # Default to 0 if no match found
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no trial number is found.
+"""
+
+    
+    match = re.search(r'_(\d+)[^0-9]', filename)  
+    return int(match.group(1)) if match else 0  
+
+
+
 
 def create_raster(folder_path, Fsamp, extract_day, extract_trial):
     """
-    Create a matplotlib figure with spike rasters for all trial files in the folder.
-    
-    Returns:
-        matplotlib.figure.Figure
-    """
+Create a grid of spike raster plots for all trials in a folder.
+
+Args:
+    folder_path (str): Path to the folder containing .pkl trial files.
+    Fsamp (float): Sampling frequency of the spike trains (Hz).
+    extract_day (callable): Function mapping filename -> sortable day index.
+    extract_trial (callable): Function mapping filename -> trial number.
+
+Process:
+    - Sorts .pkl files by day and trial.
+    - Loads MU spike trains and highlighted MU pair indices from each file.
+    - Plots spike rasters (time vs neuron) in a multi-panel figure.
+      * First neuron in the pair is red, second is blue, others are black.
+    - Removes any unused subplot axes.
+
+Returns:
+    matplotlib.figure.Figure: Figure containing all raster subplots.
+"""
+
     pkl_files = sorted(
         [f for f in os.listdir(folder_path) if f.endswith('.pkl')],
         key=lambda x: (extract_day(x), extract_trial(x))

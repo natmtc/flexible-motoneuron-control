@@ -7,6 +7,24 @@ from scipy.signal import convolve, windows
 
 
 def compute_firing_rates(spike_array, fs, window_duration=0.3):
+    """
+Compute smoothed firing rates for each neuron using a Hanning window.
+
+Args:
+    spike_array (np.ndarray): Binary spike matrix of shape (neurons, samples).
+    fs (float): Sampling frequency in Hz.
+    window_duration (float): Duration of the smoothing window in seconds.
+
+Process:
+    - Converts window duration to samples.
+    - Builds a normalized Hanning window.
+    - Convolves each spike train with the window.
+    - Multiplies by fs to convert spikes/sample → spikes/second (Hz).
+
+Returns:
+    np.ndarray: Smoothed firing-rate matrix with same shape as spike_array.
+"""
+
     window_samples = int(round(window_duration * fs))  # Convert duration to samples
     hanning_window = windows.hann(window_samples)  # Create Hanning window
     hanning_window /= np.sum(hanning_window)  # Normalize window
@@ -18,7 +36,30 @@ def compute_firing_rates(spike_array, fs, window_duration=0.3):
     
     return smoothed_firing_rates
 
+
+
+
 def plot_firing_rates(folder_path, pkl_files, fsamp=2048, window_duration=0.3, session_label=''):
+    """
+Plot smoothed firing rates for selected trials, highlighting the larger-threshold MU.
+
+Args:
+    folder_path (str): Directory containing the .pkl trial files.
+    pkl_files (list of str): Filenames to plot (already sorted externally).
+    fsamp (float): Sampling frequency of the MU data (Hz).
+    window_duration (float): Smoothing window duration for firing rate estimation (s).
+    session_label (str): Optional text prefix for subplot titles.
+
+Process:
+    - Loads MU spike trains from each file.
+    - Computes smoothed firing rates using a Hanning window.
+    - Extracts the MU pair indices and plots only the larger-threshold neuron.
+    - Arranges plots in a multi-panel grid with shared axes.
+
+Returns:
+    None (the function generates and displays a matplotlib figure).
+"""
+
     num_files = len(pkl_files)      
     cols = 3  # Number of columns for subplots
     rows = math.ceil(num_files / cols)  # Compute number of rows

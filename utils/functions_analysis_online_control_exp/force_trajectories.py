@@ -9,27 +9,65 @@ from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter
 
 def extract_day(filename):
+    """
+Extract the day label (e.g. 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    str or None: The matched day string, or None if no day pattern is found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None  
 
+
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no match is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)  
-    return int(match.group(1)) if match else 0  
+    return int(match.group(1)) if match else 0
+
+
+  
 
 def create_force_plots_by_day(directory_path, fsamp, highlight_samples, extract_day, extract_trial):
     """
-    Create a multi-panel force plot figure with trials grouped and colour-coded by day.
+Create a grid of force traces grouped and color-coded by session day.
 
-    Parameters:
-        directory_path (str): Path to the directory containing .pkl files.
-        fsamp (float): Sampling frequency (Hz).
-        highlight_samples (int): Number of samples to highlight at start and end.
-        extract_day (function): Function to extract day from filename.
-        extract_trial (function): Function to extract trial number from filename.
+Args:
+    directory_path (str): Path to the directory containing .pkl files.
+    fsamp (float): Sampling frequency of the force signal (Hz).
+    highlight_samples (int): Number of samples to highlight at the start (green)
+        and end (red) of each trial.
+    extract_day (callable): Function mapping filename -> day label (e.g. 'Day01').
+    extract_trial (callable): Function mapping filename -> trial number.
 
-    Returns:
-        matplotlib.figure.Figure: The generated figure (not shown or saved).
-    """
+Process:
+    - Groups .pkl files by day and sorts trials within each day.
+    - Assigns a unique background color to each day.
+    - For each trial:
+        * Loads the force trace.
+        * Plots the full trace in blue.
+        * Shades the subplot background with the day color.
+        * Highlights the first `highlight_samples` in green and last in red.
+    - Arranges all trials in a multi-panel matplotlib figure.
+    - Removes unused subplot axes.
+
+Returns:
+    matplotlib.figure.Figure: The generated (but not shown/saved) figure.
+"""
 
     # Group files by day
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
@@ -95,23 +133,43 @@ def create_force_plots_by_day(directory_path, fsamp, highlight_samples, extract_
     return fig
 
 
-def plot_force_trials_block(
-    directory_path,
-    fsamp=2048,
-    highlight_seconds=0,
-    long_trial_thresh_s=19.0,
-    y_max=0.2,
-    font_family="Arial",
-    tick_size=30,
-    line_width=1.2,
-    rect_edge_lw=3,
-    save_path=None
-):
-    """Plot force trajectories in a 2x2 block:
-       - Left block (cols 0–1): Day1 top, Day2 bottom
-       - Right block (cols 2–3): Day(-2) top, Day(-1) bottom
-       Each day uses TWO columns; trials fill down first column then second.
+
+
+def plot_force_trials_block(directory_path, fsamp=2048, highlight_seconds=0, long_trial_thresh_s=19.0, y_max=0.2, font_family="Arial", tick_size=30, line_width=1.2, rect_edge_lw=3, save_path=None):
     """
+Plot force trajectories in a 2×2 block layout for early vs late training days.
+
+Layout:
+    - Left block (cols 0–1): Day1 (top), Day2 (bottom)
+    - Right block (cols 2–3): Day(-2) (top), Day(-1) (bottom)
+    Each day occupies two columns; trials fill down the first column, then the second.
+
+Args:
+    directory_path (str): Folder containing .pkl trials with 'Force' data.
+    fsamp (float): Sampling frequency in Hz.
+    highlight_seconds (float): Duration (s) at start/end of each trial to slightly
+        thicken the trace.
+    long_trial_thresh_s (float): Duration threshold to mark “long” trials with a
+        filled background.
+    y_max (float): Upper limit of the y-axis (force).
+    font_family (str): Matplotlib font family.
+    tick_size (int): Tick label font size.
+    line_width (float): Line width for force traces.
+    rect_edge_lw (float): Line width for trial bounding rectangles.
+    save_path (str or None): If provided, save the figure to this path.
+
+Process:
+    - Detects and groups trials by day, sorting by trial index.
+    - Selects first two and last two days to fill the 2×2 day blocks.
+    - For each trial:
+        * Plots force vs time in black.
+        * Draws a colored rectangle per day; fills it for long trials.
+        * Optionally thickens the first/last `highlight_seconds` of the trace.
+    - Styles axes (no titles/labels, formatted ticks) and hides empty subplots.
+
+Returns:
+    None (displays the generated figure; optionally saves it).
+"""
 
     # ----------------------------
     # Style

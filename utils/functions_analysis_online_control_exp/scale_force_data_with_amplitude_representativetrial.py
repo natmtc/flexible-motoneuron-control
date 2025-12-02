@@ -7,14 +7,66 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 def extract_day(filename):
+    """
+Extract the day label (e.g., 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    str or None: The matched day string, or None if not found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None
 
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: The extracted trial number, or 0 if no valid pattern is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)
     return int(match.group(1)) if match else 0
 
+
+
+
 def compute_representative_trial(directory_path, save_dir, file_prefix="represetative_trial", target_max=0.4, fsamp=2048, plot=True,trial_numbers_by_day=None):
+    """
+Select and scale a representative force trial per day, and optionally plot them.
+
+Args:
+    directory_path (str): Folder containing .pkl trials with 'Force' data.
+    save_dir (str): Directory where scaled force arrays would be saved (.npy).
+    file_prefix (str): Prefix for output filenames.
+    target_max (float): Target global maximum for scaling (all days scaled so
+        their max equals this value).
+    fsamp (float): Sampling frequency of the force signal (Hz).
+    plot (bool): If True, plot the scaled representative trial per day.
+    trial_numbers_by_day (list or dict): Mapping from day to trial number:
+        - list: must be same length/order as `session_days`
+        - dict: keys are day labels, values are trial numbers to select.
+
+Process:
+    - Groups .pkl files by day and sorts them by trial number.
+    - For each day, selects a specific trial (given by `trial_numbers_by_day`).
+    - Resamples the force trace to a common normalized time axis.
+    - Computes a global max across days and scales each trace to `target_max`.
+    - Prints the computed scaling factor and intended save paths for .npy files.
+    - Optionally plots the scaled representative trial per day.
+
+Returns:
+    None
+"""
+
 
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
     files_by_day = {}

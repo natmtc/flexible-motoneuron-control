@@ -6,21 +6,45 @@ from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter
 from scipy.signal import convolve, windows
 
-def plot_fr_trajectories_block(
-    directory_path,
-    output_path=None,
-    fsamp_spikes_key='fsamp',
-    force_fs=2048,
-    long_trial_thresh_s=19.0,
-    clip_thresh=35,
-    smooth_window_s=0.30,
-    xlim=(0, 35), ylim=(0, 35),             # <- keep nonnegative, fits 0/15/30 ticks nicely
-    tick_locs=(0, 15, 30),                  # <- ticks on both axes everywhere
-    font_family="Arial",
-    tick_size=22,
-    line_width=2.0,
-    rect_edge_lw=4
-):
+def plot_fr_trajectories_block(directory_path, output_path=None, fsamp_spikes_key='fsamp', force_fs=2048, long_trial_thresh_s=19.0, clip_thresh=35,
+    smooth_window_s=0.30, xlim=(0, 35), ylim=(0, 35), tick_locs=(0, 15, 30), font_family="Arial", tick_size=22, line_width=2.0, rect_edge_lw=4):
+    """
+Plot 2D firing-rate trajectories for MU pairs in a 2×2 day block layout.
+
+Layout:
+    - Left block (cols 0–1): earliest 2 days (top = Day1, bottom = Day2)
+    - Right block (cols 2–3): last 2 days (top = Day(-2), bottom = Day(-1))
+    Each day occupies two columns; trials fill down the first column, then the second.
+
+Args:
+    directory_path (str): Folder containing .pkl trials with 'MU', 'Idx_MU_Pair', and 'Force'.
+    output_path (str or None): If provided, save the figure to this path.
+    fsamp_spikes_key (str): Key in the pickle dict for spike sampling frequency.
+    force_fs (float): Sampling frequency of the force signal (Hz), used for duration.
+    long_trial_thresh_s (float): Duration threshold (s) to mark “long” trials with a gray background.
+    clip_thresh (float or None): Max firing rate (Hz) to clip trajectories; if None, no clipping.
+    smooth_window_s (float): Hanning window width (s) for spike-to-FR smoothing.
+    xlim (tuple): x-axis limits for firing rate (Hz) of neuron 1.
+    ylim (tuple): y-axis limits for firing rate (Hz) of neuron 2.
+    tick_locs (tuple): Tick locations for both axes.
+    font_family (str): Matplotlib font family.
+    tick_size (int): Font size for tick labels.
+    line_width (float): Line width of FR trajectories.
+    rect_edge_lw (float): Line width of day-colored bounding rectangles.
+
+Process:
+    - Collects valid trials per day and picks the first two and last two days.
+    - Converts spike trains of the MU pair into smoothed firing rates.
+    - Clips firing rates, if requested.
+    - Plots FR trajectories (neuron1 vs neuron2) with day-colored frames and
+      gray fill for long trials.
+    - Uses consistent axis limits, ticks, and minimalist styling.
+
+Returns:
+    None (displays the figure and optionally saves it).
+"""
+
+
     # ---- style ----
     plt.rcParams["font.family"]    = font_family
     plt.rcParams["axes.labelsize"] = 0

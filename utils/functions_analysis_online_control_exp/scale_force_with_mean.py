@@ -5,14 +5,55 @@ import matplotlib.pyplot as plt
 
 # --- helpers ---
 def extract_day(filename: str) -> Optional[str]:
+    """
+Extract the day label (e.g., 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    Optional[str]: The matched day string, or None if no day label is found.
+"""
+
     m = re.search(r"(Day\d{2})", filename)
     return m.group(1) if m else None
 
+
+
+
 def extract_trial(filename: str) -> int:
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no valid pattern is found.
+"""
+
     m = re.search(r'_(\d+)[^0-9]', filename)
     return int(m.group(1)) if m else 0
 
+
+
+
 def _safe_force_from_pickle(data) -> np.ndarray:
+    """
+Safely extract a 1D force array from a loaded pickle dictionary.
+
+Args:
+    data (dict): Dictionary loaded from a .pkl file, expected to contain 'Force'.
+
+Process:
+    - Attempts to squeeze the 'Force' array directly.
+    - Falls back to converting list-like structures (e.g., nested lists) to arrays.
+    - Ensures the output is a flat NumPy float array.
+
+Returns:
+    np.ndarray: 1D force signal as floats.
+"""
+
     try:
         x = np.array(data['Force']).squeeze()
         if x.ndim > 1:
@@ -21,26 +62,39 @@ def _safe_force_from_pickle(data) -> np.ndarray:
         x = np.array(data['Force'].tolist())[0].squeeze()
     return np.asarray(x, float)
 
-def scale_and_save_all_trials_mean(
-    directory_path: str,
-    save_dir: str,
-    target_mean: float = 0.3,
-    plot_examples: bool = True,
-    n_examples: int = 6,
-    overwrite: bool = True,
-    verbose: bool = True,
-    manifest_name: str = "manifest_mean.csv"
-):
-    """
-    For every *.pkl in directory_path:
-      1) load Force
-      2) baseline-correct per trial (subtract min so min==0)
-      3) scale whole trace so mean == target_mean
-      4) save as .npy to save_dir: <Day>_trial<NN>_06.npy
 
-    Writes a manifest CSV with:
-      (day, trial, src_file, out_file, mean_before, target_mean, scale_factor)
+
+
+def scale_and_save_all_trials_mean(directory_path: str, save_dir: str, target_mean: float = 0.3, plot_examples: bool = True, n_examples: int = 6, overwrite: bool = True, verbose: bool = True, manifest_name: str = "manifest_mean.csv"):
     """
+Baseline-correct, mean-scale, and save all force trials in a folder, with a manifest.
+
+For every *.pkl in `directory_path`, this function:
+  1) Loads the 'Force' trace.
+  2) Baseline-corrects (subtracts min so min == 0).
+  3) Handles NaNs/inf by replacing them with a finite value.
+  4) Scales the entire trace so its mean equals `target_mean`.
+  5) Saves the scaled trace as <Day>_trial<NN>.npy in `save_dir`.
+
+It also writes a manifest CSV summarizing the scaling.
+
+Args:
+    directory_path (str): Directory containing input .pkl files.
+    save_dir (str): Directory where scaled .npy files and manifest are saved.
+    target_mean (float): Target mean value for each scaled trace.
+    plot_examples (bool): If True, plot a few example trials before/after scaling.
+    n_examples (int): Maximum number of example trials to plot.
+    overwrite (bool): If False, existing .npy files are not overwritten.
+    verbose (bool): If True, print per-trial scaling details and manifest path.
+    manifest_name (str): Filename for the CSV manifest.
+
+Manifest columns:
+    day, trial, src_file, out_file, mean_before, target_mean, scale_factor
+
+Returns:
+    None
+"""
+
     os.makedirs(save_dir, exist_ok=True)
 
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]

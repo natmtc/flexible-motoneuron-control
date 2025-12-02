@@ -134,15 +134,7 @@ def compute_pR2(y_true, y_pred, eps=1e-12):
     return 1.0 - (ll_sat - ll_model) / denom
 
 
-def plot_pr2_violin(session_results,
-                    title="Decoding Accuracy (pR²) by Session",
-                    out_path=None,
-                    palette_name="plasma",
-                    point_jitter=0.2,
-                    point_alpha=0.6,
-                    ylim=(-1, 1.1),
-                    figsize=(12, 6),
-                    font_family="Arial"):
+def plot_pr2_violin(session_results, title="Decoding Accuracy (pR²) by Session", out_path=None, palette_name="plasma", point_jitter=0.2, point_alpha=0.6, ylim=(-1, 1.1), figsize=(12, 6), font_family="Arial"):
     """
     Plot per-session pR² distributions as violins with overlaid dots that are the individual neuron pR² values)
     """

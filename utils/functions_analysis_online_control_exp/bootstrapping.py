@@ -1,6 +1,21 @@
 import numpy as np 
 
 def bootstrap_pr2_analysis(session_pR2, n_bootstrap=1000):
+    """
+Compute bootstrapped statistics for session-wise pR² values.
+
+For each session, this function:
+- Removes NaNs from the pR² array.
+- Performs bootstrap resampling (default: 1000 iterations).
+- Computes the bootstrap mean and 95% confidence interval.
+- Flags significance when the CI lower bound is > 0.
+
+Returns:
+    bootstrap_results (dict): Per-session statistics including mean pR²,
+        bootstrap mean, CI bounds, neuron count, and significance flag.
+    session_bootstrap_means (dict): Mean bootstrap pR² per session.
+"""
+    
     bootstrap_results = {}
     session_bootstrap_means = {}
     for session, pr2_values in session_pR2.items():

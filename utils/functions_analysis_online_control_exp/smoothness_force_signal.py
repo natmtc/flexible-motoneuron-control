@@ -9,18 +9,65 @@ import seaborn as sns
 
 
 def extract_day(filename):
+    """
+Extract the day label (e.g., 'Day03') from a filename.
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    str or None: The matched day string, or None if no day pattern is found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return match.group(1) if match else None  
 
+
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no valid pattern is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)  
     return int(match.group(1)) if match else 0  
 
+
+
+
 def compute_smoothness(force_signal, fsamp, high_freq_threshold=5.0):
+    """
+Compute a smoothness metric based on high-frequency content of a force signal.
+
+Args:
+    force_signal (array-like): 1D force trace.
+    fsamp (float): Sampling frequency in Hz.
+    high_freq_threshold (float): Frequencies above this (Hz) are considered
+        “high-frequency noise”.
+
+Process:
+    - Computes the one-sided FFT amplitude spectrum.
+    - Sums amplitudes for frequencies > high_freq_threshold.
+    - Larger values indicate noisier, less smooth force trajectories.
+
+Returns:
+    float: Smoothness metric (total high-frequency amplitude).
+"""
+
     freqs = np.fft.rfftfreq(len(force_signal), d=1/fsamp)
     amp_spectrum = np.abs(np.fft.rfft(force_signal)) / len(force_signal)
     smoothness = np.sum(amp_spectrum[freqs > high_freq_threshold])
     return smoothness
+
+
+
 
 def compute_signal_smoothness(directory_path, fsamp):
     """

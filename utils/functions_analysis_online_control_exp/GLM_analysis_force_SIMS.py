@@ -157,9 +157,7 @@ def load_force_npy(path: str) -> np.ndarray:
     return np.asarray(F, dtype=float)
 
 
-def bin_spikes_samples_by_neurons(MU: np.ndarray,
-                                  bin_ms: int = 100,
-                                  fs: int = 20000) -> np.ndarray | None:
+def bin_spikes_samples_by_neurons(MU: np.ndarray, bin_ms: int = 100, fs: int = 20000) -> np.ndarray | None:
     """
     Bin spikes from (samples, neurons) into (neurons, bins) by summing within each bin.
 

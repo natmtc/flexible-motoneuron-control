@@ -7,28 +7,78 @@ import matplotlib.pyplot as plt
 
 
 def extract_day(filename):
+    """
+Extract the numeric day index from a filename (e.g., 'Day07' → 7).
+
+Args:
+    filename (str): Filename containing a substring like 'DayXX'.
+
+Returns:
+    int or None: The day number as an integer, or None if no match is found.
+"""
+
     match = re.search(r"(Day\d{2})", filename)
     return int(match.group(1)[3:]) if match else None
 
 
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a substring like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no valid pattern is found.
+"""
+
     match = re.search(r'_(\d+)[^0-9]', filename)
     return int(match.group(1)) if match else 0
 
 
+
 def compute_avg_firing_rate(spike_times, sampling_rate):
+    """
+Compute the average firing rate from spike times.
+
+Args:
+    spike_times (array-like): Indices of spike occurrences (sample numbers).
+    sampling_rate (float): Sampling rate in Hz.
+
+Process:
+    - Computes inter-spike intervals (ISIs) in seconds.
+    - Returns the reciprocal of the mean ISI, i.e., the average firing rate.
+
+Returns:
+    float or None: Average firing rate in Hz, or None if fewer than two spikes.
+"""
+
     if len(spike_times) < 2:
         return None
     ISIs = np.diff(spike_times) / sampling_rate
     return 1 / np.mean(ISIs)
 
 
+
 def load_simulated_rates(jld2_file_paths):
     """
-    Load avg_rates_per_neuron from multiple .jld2 files using h5py.
-    Assumes the files are named ...forceX_firing_rates6.jld2 and X corresponds to DayXX.
-    Returns a dict: day -> list of firing rates.
-    """
+Load simulated average firing rates from multiple .jld2 files.
+
+Args:
+    jld2_file_paths (list of str): Paths to .jld2 files whose names contain a
+        pattern like 'forceX_firing_rates.jld2', where X is the session day index.
+
+Process:
+    - Extracts the day number from each filename using the pattern 'force(\d+)_firing_rates.jld2'.
+    - Opens each file with h5py and reads the dataset 'avg_rates_per_neuron'.
+    - Stores the firing-rate array under its corresponding day.
+
+Returns:
+    dict: Mapping {day_number (int): avg_rates_per_neuron (np.ndarray)}.
+"""
+
     sim_rates_by_day = {}
 
     for path in jld2_file_paths:
@@ -48,7 +98,29 @@ def load_simulated_rates(jld2_file_paths):
     return sim_rates_by_day
 
 
+
 def compute_firing_rate_histograms_with_sim(folder_path, Fsamp, jld2_file_paths):
+    """
+Compare experimental and simulated firing-rate distributions across days.
+
+Args:
+    folder_path (str): Directory containing experimental .pkl files with 'MU' data.
+    Fsamp (float): Sampling frequency of the spike trains (Hz).
+    jld2_file_paths (list of str): Paths to .jld2 files with simulated
+        'avg_rates_per_neuron' datasets.
+
+Process:
+    - Loads simulated average firing rates per day.
+    - Groups experimental .pkl files by day and extracts MU spike trains.
+    - Computes average firing rate per neuron (excluding neurons with <2 spikes
+      and clipping at 80 Hz).
+    - For each day, plots overlaid histograms (density) of experimental vs
+      simulated firing rates in a multi-panel figure.
+
+Returns:
+    matplotlib.figure.Figure: Figure containing histograms for all days.
+"""
+
     # Load simulated data once
     sim_data = load_simulated_rates(jld2_file_paths)
 

@@ -7,14 +7,56 @@ import matplotlib.pyplot as plt
 
 
 def extract_day(filename):
+    """
+Extract the day label (e.g., 'Day01') from a filename.
+
+Args:
+    filename (str): Filename containing a day pattern like 'DayXX'.
+
+Returns:
+    str or None: The extracted day string, or None if no match is found.
+"""
+
     m = re.search(r"(Day\d{2})", filename)
     return m.group(1) if m else None
 
+
+
+
 def extract_trial(filename):
+    """
+Extract the trial number from a filename.
+
+Args:
+    filename (str): Filename containing a pattern like '_<trialNumber>'.
+
+Returns:
+    int: Extracted trial number, or 0 if no numeric trial identifier is found.
+"""
+
     m = re.search(r'_(\d+)[^0-9]', filename)
     return int(m.group(1)) if m else 0
 
+
+
+
 def load_force(file_path):
+    """
+Load and sanitize force data from a pickle file.
+
+Args:
+    file_path (str): Path to a pickle file containing a dict with key 'Force'.
+
+Process:
+    - Loads the pickle dictionary.
+    - Extracts the 'Force' entry, handling cases where it may be a list-like
+      structure or nested array.
+    - Squeezes to a 1D array and converts to float.
+
+Returns:
+    np.ndarray: 1D force signal as floats.
+"""
+
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
     try:
@@ -25,8 +67,41 @@ def load_force(file_path):
         x = np.array(data['Force'].tolist())[0].squeeze()
     return np.asarray(x, float)
 
+
+
+
 def duration_vs_smoothness_scatter_with_median(directory_path, fsamp=2048, high_freq_threshold=5.0,
     keep_first_last=True, annotate=True, save_path=None):
+    """
+Scatter plot of trial duration vs. smoothness across days, with per-day
+representative trials and median lines.
+
+Args:
+    directory_path (str): Directory containing .pkl files with 'Force' data.
+    fsamp (float): Sampling frequency of the force signal in Hz.
+    high_freq_threshold (float): Cutoff in Hz for smoothness metric
+        (higher value = more noise).
+    keep_first_last (bool): If True and ≥4 days exist, plot only the first
+        2 and last 2 days; otherwise plot all days.
+    annotate (bool): Unused (placeholder for future annotation features).
+    save_path (str or None): If given, save the figure to this path.
+
+Process:
+    - Collects all .pkl files and groups them by day.
+    - For each file, computes trial duration and smoothness.
+    - For each day, selects a representative trial closest to the
+      (duration, smoothness) median (in normalized distance).
+    - Plots duration vs. smoothness for selected days, highlighting
+      representative trials and drawing median lines for the first plotted day.
+    - Prints the table of representative trials across all days.
+
+Returns:
+    tuple:
+        df_all (pd.DataFrame): All trials with columns:
+            ["Day", "Trial", "TrialDur_s", "Smoothness", "File"].
+        selected_all (pd.DataFrame): One representative trial per day.
+"""
+
     # Collect files by day (ALL days)
     pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
     files_by_day = {}
@@ -139,7 +214,28 @@ def duration_vs_smoothness_scatter_with_median(directory_path, fsamp=2048, high_
     return df_all, selected_all
 
 
+
+
+
 def compute_smoothness(force_signal, fsamp, high_freq_threshold=5.0):
+    """
+Compute a simple smoothness metric from the force signal's frequency spectrum.
+
+Args:
+    force_signal (array-like): 1D force trace.
+    fsamp (float): Sampling frequency in Hz.
+    high_freq_threshold (float): Frequencies above this (in Hz) are treated as
+        “high-frequency noise”.
+
+Process:
+    - Computes the one-sided FFT amplitude spectrum.
+    - Sums the amplitudes above the chosen frequency threshold.
+      (Higher values indicate noisier, less smooth signals.)
+
+Returns:
+    float: Smoothness metric (total high-frequency amplitude).
+"""
+
     freqs = np.fft.rfftfreq(len(force_signal), d=1/fsamp)
     amp_spectrum = np.abs(np.fft.rfft(force_signal)) / len(force_signal)
     smoothness = np.sum(amp_spectrum[freqs > high_freq_threshold])
