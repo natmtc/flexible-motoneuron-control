@@ -205,3 +205,84 @@ def run_duration_stats(directory_path, fsamp):
     print(f"p-value = {p_value:.6f}")
 
     return stat, p_value
+
+
+
+
+def collect_duration_single_participant(directory_path, fsamp=2048):
+    """
+    For a single participant: build a DataFrame with one row per trial.
+
+    Columns:
+      - day_label  (e.g. 'Day01')
+      - day_index  (1, 2, 3, ...)
+      - trial      (trial number within day)
+      - duration   (trial duration in seconds)
+    """
+    pkl_files = [f for f in os.listdir(directory_path) if f.endswith(".pkl")]
+
+    # group files by day
+    files_by_day = {}
+    for file in pkl_files:
+        day_label = extract_day(file)
+        if day_label:
+            files_by_day.setdefault(day_label, []).append(file)
+
+    session_days = sorted(files_by_day.keys())
+    if len(session_days) == 0:
+        raise ValueError("No valid days found in this directory.")
+
+    # map day label -> integer index (1, 2, 3, ...)
+    day_to_index = {day_label: i + 1 for i, day_label in enumerate(session_days)}
+
+    rows = []
+
+    for day_label in session_days:
+        trial_files = files_by_day[day_label]
+        # sort trials within the day
+        trial_files.sort(key=extract_trial)
+
+        for file in trial_files:
+            file_path = os.path.join(directory_path, file)
+            with open(file_path, 'rb') as f:
+                data = pickle.load(f)
+
+            # assuming data["Force"] is array-like
+            force = np.array(data["Force"].tolist())[0]
+            duration = len(force) / fsamp  # seconds
+
+            rows.append({
+                "day_label": day_label,
+                "day_index": day_to_index[day_label],
+                "trial": extract_trial(file),
+                "duration": duration
+            })
+
+    df = pd.DataFrame(rows)
+    return df
+
+
+
+def fit_duration_trend_single_participant(directory_path, fsamp=2048):
+    """
+    For a single participant:
+      - build trial-level DataFrame
+      - fit linear model: duration ~ day_index
+      - print slope and p-value
+    """
+    df = collect_duration_single_participant(directory_path, fsamp)
+
+    # Fit simple linear regression (OLS): duration ~ day_index
+    model = smf.ols("duration ~ day_index", data=df)
+    result = model.fit()
+
+    print("=== Linear model: duration ~ day_index ===")
+    print(result.summary())
+
+    slope = result.params["day_index"]
+    p_val = result.pvalues["day_index"]
+
+    print(f"\nEffect of day_index (slope): {slope:.4f} s/day")
+    print(f"p-value for day_index: {p_val:.6f}")
+
+    return df, result
