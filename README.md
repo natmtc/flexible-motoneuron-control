@@ -1,4 +1,4 @@
-# Limits of Flexible Motoneuron Control in Unifunctional Muscles
+# Insights on motoneuron flexible control
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Julia](https://img.shields.io/badge/Julia-1.8+-blue.svg)](https://julialang.org/)
@@ -6,9 +6,9 @@
 
 ## Overview
 
-This repository contains a biophysical model investigating the fundamental limits of flexible motoneuron control in skeletal muscles. Using a two-compartment Hodgkin-Huxley framework, we demonstrate that limited flexibility emerges through neuromodulation of derecruitment dynamics, establishing an upper bound on controllability in unifunctional muscles.
+This repository contains a biophysical model investigating the fundamental limits of flexible motoneuron control. Using a two-compartment Hodgkin-Huxley framework, we demonstrate that limited flexibility emerges through neuromodulation of derecruitment dynamics, establishing an upper bound on controllability.
 
-**Key Finding**: Flexible motoneuron control respects Henneman's size principle but can create transient decorrelation through dendritic calcium modulation during derecruitment.
+**Key Finding**: Truly independent motoneuron control would require breaking Henneman's size principle by violating recruitment order. Unless a muscle has different compartments or functional subdivisions receiving distinct inputs, it may be impossible to achieve truly independent control. What happens in the most constrained scenario, when a muscle only receives one input? We show that transient decorrelation can still emerge through dendritic calcium modulation during derecruitment, creating transient flexibility without violating the size principle.
 
 ## Table of Contents
 
@@ -24,9 +24,9 @@ This repository contains a biophysical model investigating the fundamental limit
 
 Motoneurons are the final pathway from the central nervous system to muscle fibers. Traditionally, they were thought to fire in lockstep according to Henneman's size principle: smaller motoneurons recruit first and fire at higher rates.
 
-Recent experiments ([Bräcklein et al., 2022](https://elifesciences.org/articles/72871)) showed humans can decorrelate motoneuron pairs in cursor-control tasks, suggesting greater flexibility than previously assumed. However, the physiological mechanisms and their limits remained unclear.
+Recent experiments ([Bräcklein et al., 2022](https://elifesciences.org/articles/72871)) showed humans can decorrelate motoneuron pairs in cursor-control tasks. Participants controlled motoneurons in the Tibialis Anterior, constrained to function as a unifunctional muscle receiving a single common input. This raised a fundamental question: can motoneurons be independently controlled when they share the same input?
 
-**Research Questions**: Can heterogeneous neuromodulation explain observed decorrelation? What are the mechanistic limits? Does learning reflect true independent access or exploitation of existing dynamics?
+**Research Questions**: Can heterogeneous neuromodulation from the brainstem enable transient independent control? What are the mechanistic limits? Does learning reflect true independent volitional access or strategic exploitation of derecruitment dynamics?
 
 ## Model Architecture
 
@@ -42,9 +42,9 @@ Our model extends Hodgkin-Huxley dynamics with:
 
 **Heterogeneous Neuromodulation**: Brainstem monoaminergic input with variable gain regulating dendritic calcium channels
 
-**Dendritic Calcium Dynamics**: Persistent inward currents with hysteresis and black-box optimized deactivation thresholds
+**Dendritic Calcium Dynamics**: Persistent inward currents (PICs) with hysteresis and black-box optimized deactivation thresholds. The model includes facilitation (increased firing rate after repeated contractions)
 
-**Uneven Inhibition**: Differential inhibition enabling asymmetric derecruitment
+**Uneven Inhibition**: Differential inhibition across the motoneuron pool
 
 The model was validated using HDsEMG recordings from Tibialis Anterior of 8 participants (129 ± 44 motoneurons per subject; [Avrillon et al., 2024](https://elifesciences.org/reviewed-preprints/97085v1)).
 
@@ -60,7 +60,7 @@ The model was validated using HDsEMG recordings from Tibialis Anterior of 8 part
 
 A PD controller minimized tracking error across trapezoidal, sinusoidal, and chirp force targets. The model reproduced both mean force trajectories and physiological variability observed in humans.
 
-### Flexible Control Experiments
+### Online-Cursor Control Experiments
 
 <p align="center">
   <img src="assets/flexible_exp.png" width="600" alt="Motoneuron pair flexible control">
