@@ -124,38 +124,15 @@ pip install numpy pandas seaborn matplotlib scipy scikit-learn umap-learn h5py
 
 ## Quick Start
 
-### Simulate a Single Motoneuron
+This repository is organized around a set of Jupyter notebooks that implement the full simulation and analysis pipelines.
 
-```julia
-using Motoneuron_Model
+To get started:
+1. Navigate to the `notebooks/` directory.
+2. Open the main simulation notebook.
+3. Follow the notebooks in order to reproduce the motoneuron simulations, pool-level analyses, and control tasks.
 
-# Initialize and simulate
-mn = Motoneuron(Rin=1.5, rheobase=10.0, VthCa=-45.0)
-time = 0:0.1:5000
-input = create_trapezoid_input(time, ramp_duration=1000, hold_duration=2000)
-voltage, spikes = simulate_motoneuron(mn, input, time)
-plot_motoneuron_response(time, voltage, spikes)
-```
+Each notebook is self-contained and documents the relevant assumptions, parameters, and outputs.
 
-### Simulate Motoneuron Pool
-
-```julia
-# Create pool and run force-tracking
-pool = create_motoneuron_pool(n=120, heterogeneity=0.3)
-force_target = sinusoidal_target(frequency=0.5, amplitude=30, duration=10)
-spikes, force_output = simulate_pool_tracking(pool, force_target)
-plot_raster_and_force(spikes, force_output, force_target)
-```
-
-### Flexible Control Task
-
-```julia
-# Run 2D cursor control
-mn1, mn2 = load_motoneuron_pair("data/pair_01.jld2")
-controller = PDController(Kp=0.5, Kd=0.1)
-trajectory = run_flexible_control(mn1, mn2, controller, n_trials=50)
-plot_cursor_trajectories(trajectory)
-```
 
 ## Citation
 
