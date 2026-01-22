@@ -133,40 +133,6 @@ To get started:
 
 Each notebook is self-contained and documents the relevant assumptions, parameters, and outputs.
 
-
-## Citation
-
-If you use this code, please cite:
-
-```bibtex
-@article{torres2024motoneuron,
-  title={Limits of Flexible Motoneuron Control in Unifunctional Muscles},
-  author={Torres-Consul, N and Collaborators},
-  journal={In preparation},
-  year={2024}
-}
-```
-
-**Related Publications**:
-
-```bibtex
-@article{avrillon2024,
-  title={Decoding the neural drive to muscles from the surface electromyogram},
-  author={Avrillon, Simon and Hug, François and Farina, Dario},
-  journal={eLife},
-  year={2024},
-  url={https://elifesciences.org/reviewed-preprints/97085v1}
-}
-
-@article{bracklein2022,
-  title={Reading and modulating cortical beta bursts from motor unit spiking activity},
-  author={Br{\"a}cklein, Martin and Ibáñez, Jaime and Barsakcioglu, Deren Y and Farina, Dario},
-  journal={eLife},
-  year={2022},
-  url={https://elifesciences.org/articles/72871}
-}
-```
-
 ## License
 
 This project is licensed under the MIT License.
