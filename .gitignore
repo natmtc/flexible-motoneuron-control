@@ -35,6 +35,13 @@ Notebooks/frs.ipynb
 
 Notebooks/Loop_run_sims.ipynb
 
+utils/
+
 # local images (not tracked)
 docs/assets/
 pictures_for_explanation/
+
+# Local cache for hysteresis_repeatability.ipynb (regenerated on run)
+notebooks/.hyst_repeatability_cache.pkl
+
+notebooks/.muedit_tracks.pkl

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//private/tmp/**)",
+      "Read(//usr/bin/**)",
+      "Bash(/Users/nmt121/Desktop/Repositories/Motoneuron_Model/.conda/bin/python -c \"import numpy,pandas,openpyxl;print\\('conda ok', numpy.__version__, pandas.__version__\\)\")",
+      "Bash(/usr/bin/python3 -c \"import openpyxl;print\\('sys openpyxl ok'\\)\")",
+      "Bash(/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -c \"import platform,numpy,scipy,pandas,matplotlib;print\\('arch',platform.machine\\(\\),'| numpy',numpy.__version__,'scipy',scipy.__version__,'pandas',pandas.__version__,'-> OK'\\)\")",
+      "Bash(/Users/nmt121/miniconda3/envs/learning_project/bin/python -c \"import platform,numpy,scipy,pandas,matplotlib;print\\('arch',platform.machine\\(\\),'| numpy',numpy.__version__,'-> OK'\\)\")",
+      "Bash(/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -)",
+      "WebSearch",
+      "WebFetch(domain:doi.org)",
+      "WebFetch(domain:figshare.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(break)",
+      "Bash(pkill -f muedit_track.py)",
+      "Bash(julia --startup-file=no -e ' *)",
+      "Bash(/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /private/tmp/claude-503/-Users-nmt121-Desktop-Repositories-Motoneuron-Model/76aa793e-13de-4fd0-bdb9-9dfca53fe34a/scratchpad/gen_ctrl3.py)",
+      "Bash(julia --startup-file=no -e 'ex=Meta.parseall\\(read\\(\"/tmp/sel.jl\",String\\)\\); println\\(any\\(a->\\(a isa Expr&&a.head==:error\\),ex.args\\) ? \"✗ SYNTAX ERROR\" : \"✓ selector cell parses\"\\)')"
+    ]
+  }
+}
