@@ -23,7 +23,7 @@ This repository documents the computational modelling and experimental analyses 
 ## 1. Biophysical model and experimental data
 
 <p align="center">
-  <img src="assets/diagram.jpg" width="780" alt="Motoneuron pool architecture and experimental force and HDsEMG data">
+  <img src="assets/diagram.jpg" width="600" alt="Motoneuron pool architecture and experimental force and HDsEMG data">
 </p>
 
 **Figure 1 — Model architecture and experimental data.**
