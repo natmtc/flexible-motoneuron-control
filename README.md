@@ -1,187 +1,161 @@
-# Insights on motoneuron flexible control
+# Constraints and flexibility in motoneuron control
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Julia](https://img.shields.io/badge/Julia-1.8+-blue.svg)](https://julialang.org/)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+![Julia](https://img.shields.io/badge/Julia-1.8%2B-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
 
-> [!IMPORTANT]
-> ## Code and data are withheld until publication
+**Can individual motoneurons be controlled flexibly despite receiving strongly shared synaptic input?**
+
+This repository documents the computational modelling and experimental analyses underlying *Neuromodulation enables transient flexible control of motoneurons*. Using a biophysical motoneuron-pool model, human high-density surface EMG (HDsEMG), and longitudinal motor-unit neurofeedback data, we investigate how neuromodulation and inhibition shape the limits of independent motoneuron control.
+
+**Main finding:** Heterogeneous neuromodulation can enable **transient decorrelation during derecruitment** without violating orderly recruitment. Improvements with training are consistent with learning to exploit existing control strategies rather than a fundamental reorganization of motoneuron population dynamics.
+
+> **Code and data availability**
 >
-> This repository currently publishes **the notebooks only**. They document the complete
-> pipeline — every parameter, every analysis step, and the reasoning behind each choice —
-> and are the intended public record of the work.
+> The annotated notebooks are publicly available, but the supporting `utils/` functions and `Data_MN_Model/` inputs, outputs, and recordings are **withheld until publication**.
 >
-> Two directories are deliberately **not** released yet:
+> A fresh clone cannot yet reproduce the complete analyses. The notebooks document the methods, parameters, and analysis workflow.
 >
-> | Directory | Contents | Status |
-> |---|---|---|
-> | `utils/` | the Julia and Python function library that the notebooks import | **withheld until publication** |
-> | `Data_MN_Model/` | model inputs, simulation outputs, and the experimental recordings | **withheld until publication** |
->
-> **A fresh clone therefore cannot be run end to end.** The notebooks will raise
-> `ModuleNotFoundError` on `utils...` imports and `FileNotFoundError` on paths under
-> `Data_MN_Model/`. This is expected, not a bug — the notebooks are published for review
-> and transparency, not yet for execution.
->
-> Both directories will be added to this repository once the accompanying paper is
-> published. If you need earlier access — for review, replication, or collaboration —
-> please get in touch at n.torres-consul21@imperial.ac.uk.
+> For access inquiries, contact [n.torres-consul21@imperial.ac.uk](mailto:n.torres-consul21@imperial.ac.uk).
 
-## Overview
+---
 
-This repository contains a biophysical model investigating the fundamental limits of flexible motoneuron control. Using a two-compartment Hodgkin-Huxley framework, we demonstrate that limited flexibility emerges through neuromodulation of derecruitment dynamics, establishing an upper bound on controllability.
-
-**Key Finding**: Truly independent motoneuron control would require breaking Henneman's size principle by violating recruitment order. Unless a muscle has different compartments or functional subdivisions receiving distinct inputs, it may be impossible to achieve truly independent control. What happens in the most constrained scenario, when a muscle only receives one input? We show that transient decorrelation can still emerge through dendritic calcium modulation during derecruitment, creating transient flexibility without violating the size principle.
-
-## Table of Contents
-
-- [Background](#background)
-- [Model Architecture](#model-architecture)
-- [Key Results](#key-results)
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-  - [Firing-rate pipeline](#firing-rate-pipeline)
-- [Citation](#citation)
-
-## Background
-
-Motoneurons are the final pathway from the central nervous system to muscle fibers. Traditionally, they were thought to fire in lockstep according to Henneman's size principle: smaller motoneurons recruit first and fire at higher rates.
-
-Recent experiments ([Bräcklein et al., 2022](https://elifesciences.org/articles/72871)) showed humans can decorrelate motoneuron pairs in cursor-control tasks. Participants controlled motoneurons in the Tibialis Anterior, constrained to function as a unifunctional muscle receiving a single common input. This raised a fundamental question: can motoneurons be independently controlled when they share the same input?
-
-**Research Questions**: Can heterogeneous neuromodulation from the brainstem enable transient independent control? What are the mechanistic limits? Does learning reflect true independent volitional access or strategic exploitation of derecruitment dynamics?
-
-## Model Architecture
+## 1. Biophysical model and experimental data
 
 <p align="center">
-  <img src="assets/diagram.jpg" width="500" alt="Two-compartment motoneuron model schematic">
-  <br>
-  <em>Figure 1a: Two-compartment biophysical motoneuron model</em>
+  <img src="assets/diagram.jpg" width="780" alt="Motoneuron pool architecture and experimental force and HDsEMG data">
 </p>
 
-Our model extends Hodgkin-Huxley dynamics with:
+**Figure 1 — Model architecture and experimental data.**
 
-**Two-Compartment Structure**: Somatic (spike generation) and dendritic (neuromodulatory integration) compartments
+- **(a) Biophysical model:** A pool of two-compartment Hodgkin–Huxley motoneurons receives shared excitatory and inhibitory inputs, with heterogeneous sensitivity to neuromodulation. Dendritic persistent inward currents (PICs) influence firing hysteresis, while somatic action potentials are converted into force through a twitch-based model.
+- **(b) Experimental data:** Human tibialis anterior force-tracking contractions are recorded using HDsEMG and decomposed into motor-unit spike trains. Recruitment and derecruitment dynamics provide physiological constraints for model calibration.
 
-**Heterogeneous Neuromodulation**: Brainstem monoaminergic input with variable gain regulating dendritic calcium channels
+The framework investigates how shared excitation, inhibition, and heterogeneous neuromodulation influence motoneuron recruitment, firing, and flexibility.
 
-**Dendritic Calcium Dynamics**: Persistent inward currents (PICs) with hysteresis and black-box optimized deactivation thresholds. The model includes facilitation (increased firing rate after repeated contractions)
+Experimental recordings from eight participants provide a physiological reference ([Avrillon et al., 2024](https://elifesciences.org/reviewed-preprints/97085v1)).
 
-**Uneven Inhibition**: Differential inhibition across the motoneuron pool
+---
 
-The model was validated using HDsEMG recordings from Tibialis Anterior of 8 participants (129 ± 44 motoneurons per subject; [Avrillon et al., 2024](https://elifesciences.org/reviewed-preprints/97085v1)).
+## 2. Physiological firing rates
 
 <p align="center">
-  <img src="assets/firings.png" width="350" alt="Firing rate distributions">
-  <br>
-  <em>Figure 2: Model reproduces experimental firing-rate distributions</em>
+  <img src="assets/firings.png" width="650" alt="Simulated and experimental firing-rate distributions">
 </p>
 
-## Key Results
+**Figure 2 — Comparison of simulated and experimental firing rates.**
 
-### Force-Tracking Performance
+Simulated mean firing-rate distributions are compared with experimental recordings across contraction intensities ranging from 10% to 80% maximum voluntary contraction (MVC).
 
-A PD controller minimized tracking error across trapezoidal, sinusoidal, and chirp force targets. The model reproduced both mean force trajectories and physiological variability observed in humans.
+Simulated firing rates are concentrated around 14–17 Hz, within the approximately 9–18 Hz range highlighted in the experimental recordings.
 
-### Online-Cursor Control Experiments
+This comparison supports the physiological plausibility of the simulated firing rates, rather than an exact reproduction of every experimental condition.
+
+---
+
+## 3. Constraints on flexible online control
 
 <p align="center">
-  <img src="assets/online_cursor_control.jpg" width="600" alt="Motoneuron pair flexible control">
-  <br>
-  <em>Figure 3: (a) PD controller for flexible control; (b) Flexibility emerges from derecruitment modulation</em>
+  <img src="assets/online_cursor_control.jpg" width="850" alt="Motoneuron-pair flexibility and online cursor-control simulations">
 </p>
 
-We simulated cursor-control experiments from [Bräcklein et al. (2022)](https://elifesciences.org/articles/72871). True independent recruitment is not achievable; the size principle is never violated during recruitment. Apparent flexibility arises from modulating derecruitment dynamics by selectively adjusting inhibition and neuromodulation, creating transient decorrelation that appears like independent control.
+**Figure 3 — Mechanisms and limits of motoneuron-pair flexibility.**
 
-### Learning Dynamics
+- **(a) Control hypotheses:** Three possible regimes of motoneuron-pair control are considered: sustained flexibility, transient flexibility, and rigid coupling. Different excitatory inputs, heterogeneous neuromodulation, and shared neuromodulation represent candidate underlying mechanisms.
+
+- **(b) Online control simulation:** A proportional–derivative (PD) controller drives the biophysical model to reproduce target cursor trajectories inspired by motor-unit neurofeedback experiments ([Bräcklein et al., 2022](https://elifesciences.org/articles/72871)).
+
+- **(c) Transient flexibility:** Heterogeneous neuromodulation and inhibition enable transient separation of motoneuron firing rates, particularly during derecruitment.
+
+- **(d) Constrained control:** Similar neuromodulatory effects maintain strongly coupled activity, limiting independent control of motoneuron pairs.
+
+- **(e) Force production:** Simulated force is evaluated alongside experimental force across different phases of the online control task.
+
+- **(f) Pair-level displacement:** The degree of firing-rate separation varies with motoneuron properties and neuromodulation.
+
+- **(g) Population-level dispersion:** Firing-rate dispersion is compared with and without neuromodulation to evaluate its contribution to control flexibility.
+
+**Key finding:** Transient decorrelation can emerge through heterogeneous neuromodulatory effects on derecruitment, without violating orderly recruitment under the size principle.
+
+These results suggest that apparently flexible control need not imply fully independent recruitment of individual motoneurons.
+
+---
+
+## 4. Learning across days: behaviour and population coupling
 
 <p align="center">
-  <img src="assets/glm.png" width="700" alt="Correlation evolution over learning">
-  <br>
-  <em>Figure 4: (a) 14-day learning dataset; (b) Pairwise correlations tracked with Poisson GLMs</em>
+  <img src="assets/glm.png" width="850" alt="Behavioural learning and GLM analysis of motoneuron population coupling">
 </p>
 
-Analysis of the 14-day dataset from [Bräcklein et al. (2022)](https://elifesciences.org/articles/72871) using Poisson GLMs showed that improvements arise from behavioral optimization of existing neuromodulatory control, not fundamental changes in motoneuron properties.
+**Figure 4 — Behavioural improvements and stability of population coupling across learning.**
 
-**Conclusion**: Neuromodulation defines the upper bound of controllability in unifunctional muscles, enabling limited transient decorrelation but not arbitrary independent control.
+- **(a) Behavioural performance:** Participants improve their success rates over training, with representative force trajectories illustrating changes across sessions.
 
-## Features
+- **(b) Task performance:** Force jitter and trial duration decrease between early and late training sessions.
 
-- Two-compartment Hodgkin-Huxley motoneuron model with heterogeneous neuromodulation
-- Black-box optimization of dendritic Ca²⁺ thresholds
-- PD controllers for force-tracking and flexible motoneuron-pair control
-- Motoneuron pool simulation (spike trains, force output, hysteresis)
-- Correlation analysis over learning (Poisson GLMs)
-- Analysis pipeline for experimental datasets
+- **(c) Experimental population analysis:** A leave-one-motoneuron-out generalized linear model (GLM) predicts each motoneuron's spike counts from the activity of the remaining population. Cross-validated pseudo-R² measures population-based predictability across training days.
 
-## Installation
+- **(d) Simulated population analysis:** The same GLM approach is applied to simulated motoneuron activity to provide a model-based comparison.
 
-### Clone Repository
+**Key finding:** Behavioural performance improves while GLM-based population predictability remains relatively stable across training.
+
+These findings are consistent with participants refining their control strategies to exploit existing physiological flexibility, rather than requiring substantial reorganization of motoneuron population dynamics.
+
+---
+
+## Repository contents
+
+| Directory | Description | Availability |
+|---|---|---|
+| `Notebooks/` | Documented simulation and analysis pipelines | Public |
+| `assets/` | Figures illustrating the methods and results | Public |
+| `utils/` | Supporting Julia and Python functions | Withheld until publication |
+| `Data_MN_Model/` | Experimental recordings, model inputs, and simulation outputs | Withheld until publication |
+
+The repository includes computational workflows for:
+
+- Two-compartment biophysical motoneuron-pool modelling.
+- Simulations of recruitment, derecruitment, and firing hysteresis.
+- Analysis of heterogeneous neuromodulation and inhibition.
+- Closed-loop force tracking and motoneuron-pair control.
+- Comparison of simulated and experimental firing rates.
+- Longitudinal motor-learning analysis using Poisson GLMs.
+
+## Getting started
+
+Clone the repository:
 
 ```bash
-git clone https://github.com/natmtc/Motoneuron_Model.git
-cd Motoneuron_Model
+git clone https://github.com/natmtc/constraints-and-flexibility-motoneurons.git
+cd constraints-and-flexibility-motoneurons
 ```
 
-### Julia Dependencies
-
-Launch Julia and run:
-
-```julia
-using Pkg
-Pkg.add([
-    "Plots", "Distributions", "JLD", "DSP", "Parameters", 
-    "Match", "SymDict", "NumericalIntegration", "Random", 
-    "MAT", "CSV", "DataFrames", "XLSX", "JLD2", 
-    "Colors", "ColorSchemes", "Makie", "CairoMakie", 
-    "Optim", "Serialization", "JuMP", "Ipopt", 
-    "Wandb", "PyCall", "Logging", "GLM", "PyPlot", "Polynomials"
-])
-```
-
-### Python Dependencies
+Open the notebooks using JupyterLab:
 
 ```bash
-pip install numpy pandas seaborn matplotlib scipy scikit-learn umap-learn h5py
+jupyter lab
 ```
 
-## Quick Start
+The notebooks document the modelling assumptions, simulation procedures, analysis parameters, and results.
 
-> **Note** — the steps below describe how the pipeline is run with the full code and data
-> in place. Until `utils/` and `Data_MN_Model/` are released (see the notice at the top),
-> the notebooks can be read but not executed.
+**Note:** Complete execution currently requires the supporting functions and datasets that will be released alongside publication.
 
-This repository is organized around a set of Jupyter notebooks that implement the full simulation and analysis pipelines.
+---
 
-To get started:
-1. Navigate to the `notebooks/` directory.
-2. Open the main simulation notebook.
-3. Follow the notebooks in order to reproduce the motoneuron simulations, pool-level analyses, and control tasks.
+## References and citation
 
-Each notebook documents the relevant assumptions, parameters, and outputs, and states which
-functions in `utils/` it depends on.
+**Associated manuscript**
 
-### Firing-rate pipeline
+*Neuromodulation enables transient flexible control of motoneurons.*
 
-`notebooks/check_firing_rates_online_control.ipynb` is the entry point for comparing experimental
-and simulated firing-rate distributions. It covers force scaling, the simulation
-sweep, and the comparison as one documented pipeline, and explains the reasoning
-behind each step.
+Preprint available; manuscript under review.
 
-Point `MN_DATA_ROOT` at the directory holding the per-subject folders of `.pkl`
-recordings, then launch from the repository root:
+**Experimental studies**
 
-```bash
-export MN_DATA_ROOT=/path/to/DATA
-jupyter lab notebooks/check_firing_rates_online_control.ipynb
-```
+- [Bräcklein et al. (2022)](https://elifesciences.org/articles/72871) — Longitudinal motor-unit neurofeedback and learning experiments.
+- [Avrillon et al. (2024)](https://elifesciences.org/reviewed-preprints/97085v1) — Human motor-unit recordings used for physiological calibration.
 
-The notebook writes scaled force traces and a manifest under
-`Data_MN_Model/Data_final/`. Section 3 runs in Julia via
-`utils/functions_run_simulations/run_from_manifest.jl`; the remaining sections are
-Python. Amplitude decisions are recorded in the manifest, and each simulation output
-stores its own sampling rate, so the two languages share one explicit contract.
+If you use this repository, please cite the associated manuscript and the relevant original experimental studies.
 
 ## License
 
@@ -189,12 +163,8 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-For questions: n.torres-consul21@imperial.ac.uk
+For questions, collaboration, or requests for early access to supporting materials:
 
-## Glossary
-
-**Motoneuron**: Spinal neuron controlling muscle fiber contraction  
-**Size Principle**: Orderly recruitment of motoneurons from smallest to largest  
-**Derecruitment**: Cessation of motoneuron firing as drive decreases  
-**Persistent Inward Current (PIC)**: Dendritic calcium/sodium current amplifying synaptic input  
-**Neuromodulatory Hysteresis**: Difference between activation and deactivation thresholds for PICs
+**Natalia T. Cónsul**  
+Imperial College London  
+[n.torres-consul21@imperial.ac.uk](mailto:n.torres-consul21@imperial.ac.uk)
