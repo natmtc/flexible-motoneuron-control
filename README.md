@@ -4,6 +4,29 @@
 [![Julia](https://img.shields.io/badge/Julia-1.8+-blue.svg)](https://julialang.org/)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 
+> [!IMPORTANT]
+> ## Code and data are withheld until publication
+>
+> This repository currently publishes **the notebooks only**. They document the complete
+> pipeline — every parameter, every analysis step, and the reasoning behind each choice —
+> and are the intended public record of the work.
+>
+> Two directories are deliberately **not** released yet:
+>
+> | Directory | Contents | Status |
+> |---|---|---|
+> | `utils/` | the Julia and Python function library that the notebooks import | **withheld until publication** |
+> | `Data_MN_Model/` | model inputs, simulation outputs, and the experimental recordings | **withheld until publication** |
+>
+> **A fresh clone therefore cannot be run end to end.** The notebooks will raise
+> `ModuleNotFoundError` on `utils...` imports and `FileNotFoundError` on paths under
+> `Data_MN_Model/`. This is expected, not a bug — the notebooks are published for review
+> and transparency, not yet for execution.
+>
+> Both directories will be added to this repository once the accompanying paper is
+> published. If you need earlier access — for review, replication, or collaboration —
+> please get in touch at n.torres-consul21@imperial.ac.uk.
+
 ## Overview
 
 This repository contains a biophysical model investigating the fundamental limits of flexible motoneuron control. Using a two-compartment Hodgkin-Huxley framework, we demonstrate that limited flexibility emerges through neuromodulation of derecruitment dynamics, establishing an upper bound on controllability.
@@ -18,6 +41,7 @@ This repository contains a biophysical model investigating the fundamental limit
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+  - [Firing-rate pipeline](#firing-rate-pipeline)
 - [Citation](#citation)
 
 ## Background
@@ -124,6 +148,10 @@ pip install numpy pandas seaborn matplotlib scipy scikit-learn umap-learn h5py
 
 ## Quick Start
 
+> **Note** — the steps below describe how the pipeline is run with the full code and data
+> in place. Until `utils/` and `Data_MN_Model/` are released (see the notice at the top),
+> the notebooks can be read but not executed.
+
 This repository is organized around a set of Jupyter notebooks that implement the full simulation and analysis pipelines.
 
 To get started:
@@ -131,7 +159,29 @@ To get started:
 2. Open the main simulation notebook.
 3. Follow the notebooks in order to reproduce the motoneuron simulations, pool-level analyses, and control tasks.
 
-Each notebook is self-contained and documents the relevant assumptions, parameters, and outputs.
+Each notebook documents the relevant assumptions, parameters, and outputs, and states which
+functions in `utils/` it depends on.
+
+### Firing-rate pipeline
+
+`notebooks/check_firing_rates_online_control.ipynb` is the entry point for comparing experimental
+and simulated firing-rate distributions. It covers force scaling, the simulation
+sweep, and the comparison as one documented pipeline, and explains the reasoning
+behind each step.
+
+Point `MN_DATA_ROOT` at the directory holding the per-subject folders of `.pkl`
+recordings, then launch from the repository root:
+
+```bash
+export MN_DATA_ROOT=/path/to/DATA
+jupyter lab notebooks/check_firing_rates_online_control.ipynb
+```
+
+The notebook writes scaled force traces and a manifest under
+`Data_MN_Model/Data_final/`. Section 3 runs in Julia via
+`utils/functions_run_simulations/run_from_manifest.jl`; the remaining sections are
+Python. Amplitude decisions are recorded in the manifest, and each simulation output
+stores its own sampling rate, so the two languages share one explicit contract.
 
 ## License
 

@@ -35,6 +35,8 @@ Notebooks/frs.ipynb
 
 Notebooks/Loop_run_sims.ipynb
 
+# The function library is withheld until the paper is published (see README).
+# Nothing under utils/ is tracked; remove this line to release it.
 utils/
 
 # local images (not tracked)
@@ -45,3 +47,6 @@ pictures_for_explanation/
 notebooks/.hyst_repeatability_cache.pkl
 
 notebooks/.muedit_tracks.pkl
+
+# Claude Code local settings (machine-specific, not for the repo)
+.claude/
