@@ -87,7 +87,7 @@ A PD controller minimized tracking error across trapezoidal, sinusoidal, and chi
 ### Online-Cursor Control Experiments
 
 <p align="center">
-  <img src="assets/flexible_exp.png" width="600" alt="Motoneuron pair flexible control">
+  <img src="assets/online_cursor_control.jpg" width="600" alt="Motoneuron pair flexible control">
   <br>
   <em>Figure 3: (a) PD controller for flexible control; (b) Flexibility emerges from derecruitment modulation</em>
 </p>
