@@ -40,7 +40,7 @@ Experimental recordings from eight participants provide a physiological referenc
 ## 2. Physiological firing rates
 
 <p align="center">
-  <img src="assets/firings.png" width="650" alt="Simulated and experimental firing-rate distributions">
+  <img src="assets/firings.png" width="325" alt="Simulated and experimental firing-rate distributions">
 </p>
 
 **Figure 2 — Comparison of simulated and experimental firing rates.**
@@ -84,7 +84,7 @@ These results suggest that apparently flexible control need not imply fully inde
 ## 4. Learning across days: behaviour and population coupling
 
 <p align="center">
-  <img src="assets/glm.png" width="850" alt="Behavioural learning and GLM analysis of motoneuron population coupling">
+  <img src="assets/glm.png" width="780" alt="Behavioural learning and GLM analysis of motoneuron population coupling">
 </p>
 
 **Figure 4 — Behavioural improvements and stability of population coupling across learning.**
