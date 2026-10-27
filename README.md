@@ -112,14 +112,50 @@ These findings are consistent with participants refining their control strategie
 | `utils/` | Supporting Julia and Python functions | Withheld until publication |
 | `Data_MN_Model/` | Experimental recordings, model inputs, and simulation outputs | Withheld until publication |
 
-The repository includes computational workflows for:
+## The notebooks
 
-- Two-compartment biophysical motoneuron-pool modelling.
-- Simulations of recruitment, derecruitment, and firing hysteresis.
-- Analysis of heterogeneous neuromodulation and inhibition.
-- Closed-loop force tracking and motoneuron-pair control.
-- Comparison of simulated and experimental firing rates.
-- Longitudinal motor-learning analysis using Poisson GLMs.
+Each notebook is one stage of the work and documents its own assumptions, parameters, and
+outputs. Julia notebooks run the biophysical model; Python notebooks analyse experimental
+recordings and model output.
+
+### Model calibration and characterisation — Julia
+
+| Notebook | What it does |
+|---|---|
+| `optimization_vthca_values.ipynb` | Fits each motoneuron's calcium activation threshold (`VthCa`) so that the model reproduces the recruitment hysteresis measured in the corresponding motor unit. Produces the parameter file that every other simulation loads. |
+| `simulate_motoneuron_pool.ipynb` | The core simulation. Builds a pool of two-compartment motoneurons, drives it with a slow triangular ramp, and measures recruitment, firing rates, and hysteresis. The starting point for understanding the model. |
+| `hysteresis_and_vthca_sweep.ipynb` | Sweeps the calcium threshold against inhibition for a single motoneuron, mapping how the two jointly determine hysteresis. |
+
+### Control tasks — Julia
+
+| Notebook | What it does |
+|---|---|
+| `closed_loop_force_control.ipynb` | A proportional–derivative controller drives the pool to track target force trajectories (trapezoidal, sinusoidal, chirp). |
+| `online_cursor_control_task.ipynb` | Simulates the cursor-control task: a controller attempts to decorrelate a motoneuron pair under shared input. Includes an alternative parameterisation with uniform `VthCa` and randomised inhibition, to separate the contribution of heterogeneous neuromodulation. |
+| `simulate_all_trials.ipynb` | Runs the pool once per recorded trial, driven by that trial's scaled force, and computes firing rates per trial. Produces the per-trial simulated rasters used by the population analyses. |
+
+### Experimental and comparative analysis — Python
+
+| Notebook | What it does |
+|---|---|
+| `experiments_data_analysis.ipynb` | Behaviour of one participant across the training sessions: spike rasters, force traces, trial duration, success rate, force smoothness, and the two-unit state space. Also performs the force scaling that turns recorded force into model input. |
+| `check_firing_rates_online_control.ipynb` | Compares simulated against recorded discharge. Covers the choice of force-scaling policy, the simulation sweep, and both distribution-level and time-domain comparisons. |
+| `generalized_linear_model_analysis.ipynb` | Leave-one-motoneuron-out Poisson GLMs measuring how predictable each unit is from the rest of the population, and how that predictability changes across training. |
+| `hysteresis_repeatability.ipynb` | Tracks the same motor unit across 10–80% MVC contractions using the decomposition's own filter-tracking method, and quantifies how repeatable each unit's hysteresis is between contractions. |
+
+## How the pieces fit together
+
+The stages depend on each other in this order:
+
+1. **Calibrate.** `optimization_vthca_values.ipynb` fits `VthCa` per motor unit against measured hysteresis. Everything downstream loads the resulting parameter file.
+2. **Characterise.** `simulate_motoneuron_pool.ipynb` and `hysteresis_and_vthca_sweep.ipynb` establish how the calibrated pool behaves — recruitment order, firing rates, and the hysteresis the calibration targeted.
+3. **Scale the experimental force.** `experiments_data_analysis.ipynb` converts recorded force, in arbitrary units, into a drive whose amplitude is set deliberately against the pool's recruitment thresholds.
+4. **Simulate.** `simulate_all_trials.ipynb` drives the pool with that scaled force, one simulation per trial.
+5. **Compare and analyse.** `check_firing_rates_online_control.ipynb` compares simulated against recorded discharge; `generalized_linear_model_analysis.ipynb` quantifies population coupling across learning.
+
+The control-task notebooks (`closed_loop_force_control.ipynb`, `online_cursor_control_task.ipynb`) and `hysteresis_repeatability.ipynb` are independent of that chain: the first two need only the calibrated pool, and the third works directly from the experimental recordings.
+
+A reader starting from scratch is best served by `simulate_motoneuron_pool.ipynb`, which introduces the model and its parameters, followed by `online_cursor_control_task.ipynb`, which contains the central result.
 
 ## Getting started
 
@@ -130,13 +166,15 @@ git clone https://github.com/natmtc/constraints-and-flexibility-motoneurons.git
 cd constraints-and-flexibility-motoneurons
 ```
 
-Open the notebooks using JupyterLab:
+Launch JupyterLab **from the repository root**, since the notebooks resolve their paths relative to it:
 
 ```bash
 jupyter lab
 ```
 
-The notebooks document the modelling assumptions, simulation procedures, analysis parameters, and results.
+Two kernels are required: Julia 1.6 for the simulation notebooks and Python 3.11+ for the
+analysis notebooks. Python dependencies are `numpy`, `pandas`, `scipy`, `matplotlib`,
+`seaborn`, `statsmodels`, `h5py`, and `scikit-learn`.
 
 **Note:** Complete execution currently requires the supporting functions and datasets that will be released alongside publication.
 
