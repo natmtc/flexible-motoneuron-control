@@ -12,11 +12,11 @@ This repository documents the computational modelling and experimental analyses 
 
 > **Code and data availability**
 >
-> The annotated notebooks are publicly available, but the supporting `utils/` functions and `Data_MN_Model/` inputs, outputs, and recordings are **withheld until publication**.
+> The notebooks and the full `utils/` function library — the biophysical model, the optimisation, and every analysis routine — are publicly available here.
 >
-> A fresh clone cannot yet reproduce the complete analyses. The notebooks document the methods, parameters, and analysis workflow.
+> The `Data_MN_Model/` directory, which holds the experimental recordings, model inputs, and simulation outputs, is **withheld until publication**. A fresh clone can therefore be read and inspected in full, but cannot be executed end to end until that data is released.
 >
-> For access inquiries, contact [n.torres-consul21@imperial.ac.uk](mailto:n.torres-consul21@imperial.ac.uk).
+> For data access inquiries, contact [n.torres-consul21@imperial.ac.uk](mailto:n.torres-consul21@imperial.ac.uk).
 
 ---
 
@@ -109,8 +109,18 @@ These findings are consistent with participants refining their control strategie
 |---|---|---|
 | `Notebooks/` | Documented simulation and analysis pipelines | Public |
 | `assets/` | Figures illustrating the methods and results | Public |
-| `utils/` | Supporting Julia and Python functions | Withheld until publication |
+| `utils/` | The biophysical model, optimisation, and analysis functions | Public |
 | `Data_MN_Model/` | Experimental recordings, model inputs, and simulation outputs | Withheld until publication |
+
+The function library is organised by role:
+
+| Directory | Contents |
+|---|---|
+| `utils/functions_run_simulations/` | The biophysical model itself: the two-compartment ODE and its integrator, spike detection, the pool simulation drivers, and the manifest-driven per-trial runner. |
+| `utils/functions_optimization/` | The black-box optimisation that fits each motoneuron's calcium activation threshold to its measured hysteresis, with a no-facilitation variant of the model. |
+| `utils/functions_analysis_online_control_exp/` | Analysis of the cursor-control recordings and of simulation output: firing-rate estimation, force scaling, recruitment matching, GLM fitting, and the figure code. |
+| `utils/functions_mu_tracking/` | Tracking the same motor unit across contractions, ported from the decomposition's own filter-reconstruction method. |
+| `utils/functions_matlab_flexibility/` | MATLAB routines for the motoneuron displacement and dispersion metrics. |
 
 ## The notebooks
 
@@ -176,7 +186,7 @@ Two kernels are required: Julia 1.6 for the simulation notebooks and Python 3.11
 analysis notebooks. Python dependencies are `numpy`, `pandas`, `scipy`, `matplotlib`,
 `seaborn`, `statsmodels`, `h5py`, and `scikit-learn`.
 
-**Note:** Complete execution currently requires the supporting functions and datasets that will be released alongside publication.
+**Note:** The code is complete, but running the notebooks end to end additionally requires the `Data_MN_Model/` datasets, which will be released alongside publication.
 
 ---
 

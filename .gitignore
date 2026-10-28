@@ -35,9 +35,9 @@ Notebooks/frs.ipynb
 
 Notebooks/Loop_run_sims.ipynb
 
-# The function library is withheld until the paper is published (see README).
-# Nothing under utils/ is tracked; remove this line to release it.
-utils/
+# Python bytecode
+__pycache__/
+*.pyc
 
 # local images (not tracked)
 docs/assets/
